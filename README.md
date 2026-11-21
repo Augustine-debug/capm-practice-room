@@ -35,6 +35,8 @@ js/app.js               app logic
 data/questions.json     question bank (one question per line)
 scripts/validate.js     checks the question bank
 docs/question-schema.md question format, field by field
+docs/user-flow.md       how a candidate moves through the app (diagrams)
+docs/decisions.md       decision log: what was chosen and why
 ```
 
 ## Check the question bank before each release
