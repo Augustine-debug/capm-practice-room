@@ -54,7 +54,7 @@ const SITE={
   kofi:"https://ko-fi.com/duyduy3396",
   maker:"Duy Nguyễn",
   github:"https://github.com/Augustine-debug",
-  linkedin:"",            // paste the LinkedIn profile URL here; the link shows only when this is set
+  linkedin:"https://www.linkedin.com/in/hoangduynguyen/",            // paste the LinkedIn profile URL here; the link shows only when this is set
   bankUpdated:"21 November 2026",
   pmi:"https://www.pmi.org/capm",
   // Google Form links (E4). reportForm is the form's pre-filled link with the question ID field set to QID;
