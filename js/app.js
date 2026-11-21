@@ -127,8 +127,10 @@ function startSection2(){S.phase="s2";S.idx=SEC;save();render();window.scrollTo(
 
 function go(v){view=v;confirmOpen=false;stopTick();
   if(v==="home"&&location.hash&&location.hash!=="#/")history.replaceState(null,"","#/");
+  if(v==="result")history.replaceState(null,"","#/results");
   if(v==="exam")startTick();
-  render();window.scrollTo(0,0)}
+  render();window.scrollTo(0,0);
+  if(v==="result")$("#resTitle")?.focus()}
 function startTick(){tick=setInterval(()=>{if(!S||S.done)return;
   if(S.phase==="break"){S.brk++;if(S.brk%5===0)save();
     if(S.brk>=BREAK){startSection2();return}
@@ -185,7 +187,7 @@ function render(){
   else if(view==="cards")app.innerHTML=navHTML("cards")+cardsHTML()+footHTML();
   else if(view==="cardq")app.innerHTML=navHTML("cards")+cardQHTML();
   else if(view==="exam")app.innerHTML=examHTML();
-  else app.innerHTML=resultHTML();
+  else app.innerHTML=navHTML("result")+resultHTML();
   if(view==="home")syncCustom();
   if(view==="exam")keepNavigatorInView(oldGrid?gridTop:null);
   countPage();
@@ -419,6 +421,11 @@ function bar(label,c,n,w){const p=n?Math.round(c/n*100):0;
   const col=p>=75?"var(--ok)":p>=65?"var(--flag)":"var(--bad)";
   return `<div class="brk"><div class="top"><span>${label}</span><span>${c}/${n} · ${p}%</span></div><div class="track"><i style="width:${p}%;background:${col}"></i><span class="mark" title="70% reference mark"></span></div></div>`}
 
+/* Result actions, shown under the score and again at the end of a long review */
+function actionBtns(main){const w=S.ids.filter(id=>!isRight(id)).length,n=S.ids.length;
+  return `<button class="btn ${main?"primary":""}" data-act="retryThis" ${w?"":"disabled"}>Retry ${w} mistake${w===1?"":"s"}</button>
+    ${main?`<button class="btn" data-act="redoThis">Retake all ${n}</button>`:""}
+    <button class="btn" data-act="history">Back to history (Home)</button>`}
 function resultHTML(){
   const ids=S.ids,n=ids.length,c=ids.filter(isRight).length,p=Math.round(c/n*100);
   const skipped=ids.filter(id=>S.ans[id]===undefined).length;
@@ -435,39 +442,38 @@ function resultHTML(){
   const list=flt[reviewFilter];
   const items=list.map(id=>{const b=BANK[id-1],sel=S.ans[id],perm=S.perm[id],pos=ids.indexOf(id);
     const st=sel===undefined?"skip":okAns(sel,b)?"ok":"bad";
-    const opts=perm.map((orig,k)=>{let cls=isAns(b,orig)?"right":picked(sel,orig)?"wrong":"";
-      return `<div class="opt ${cls}"><span class="k">${L[k]}</span><span class="t">${esc(b.o[orig])}${picked(sel,orig)?' <small class="muted">· your answer</small>':""}</span></div>`}).join("");
-    return `<article class="ritem ${st}"><div class="meta"><span class="qnum">QUESTION ${pos+1}</span><span class="chip">Domain ${b.d}</span><span class="chip lv${b.lv}">${LEVELS[b.lv]}</span><span class="chip eco" title="${esc((TASKS[b.t]||[""])[0])}">ECO ${b.t}</span>${st==="skip"?'<span class="chip">Unanswered</span>':""}${S.flag[id]?'<span class="chip" style="color:var(--flag)">Flagged</span>':""}</div>
+    const opts=perm.map((orig,k)=>{const ok=isAns(b,orig),mine=picked(sel,orig),cls=ok?"right":mine?"wrong":"";
+      const tag=ok&&mine?"✓ Your answer, correct":ok?"✓ Correct answer":mine?"✗ Your answer":"";
+      return `<div class="opt ${cls}"><span class="k">${L[k]}</span><span class="t">${esc(b.o[orig])}${tag?` <small class="otag">${tag}</small>`:""}</span></div>`}).join("");
+    const stChip=st==="ok"?'<span class="chip st ok">✓ Correct</span>':st==="bad"?'<span class="chip st bad">✗ Incorrect</span>':'<span class="chip st">Unanswered</span>';
+    return `<article class="ritem ${st}" aria-labelledby="rq${id}"><div class="meta"><h3 class="qnum" id="rq${id}">Question ${pos+1}</h3>${stChip}<span class="chip">Domain ${b.d}</span><span class="chip lv${b.lv}">${LEVELS[b.lv]}</span><span class="chip eco" title="${esc((TASKS[b.t]||[""])[0])}">ECO ${b.t}</span>${S.flag[id]?'<span class="chip" style="color:var(--flag)">⚑ Flagged</span>':""}</div>
       ${b.ctx?`<div class="ctx">${esc(b.ctx)}</div>`:""}<p class="qtext">${esc(b.q)}</p><div class="opts">${opts}</div>
       <div class="explain"><div class="exhead"><b>Answer: ${okLetters(b,perm)}</b>${langSwitch()}</div>${shortHTML(b)}${detailHTML(b,perm)}<div class="exfoot">${reportLink(b)}</div></div></article>`}).join("");
   return `
-  <header class="mast"><div><div class="label">${modeName[S.mode]} · ${n} question${n===1?"":"s"}${S.t?" · "+when(S.t):""}</div><h1>${S.fromHistory?"Review":"Results"}</h1></div>
-    <div class="spec"><div><b>${fmt(S.elapsed)}</b><small>time used</small></div><div><b>${n?fmt(S.elapsed/n):"0:00"}</b><small>per question</small></div>${themeBtn()}</div></header>
+  <header class="mast"><div><div class="label">${modeName[S.mode]} · ${n} question${n===1?"":"s"}${S.t?" · "+when(S.t):""}</div><h1 id="resTitle" tabindex="-1">${S.fromHistory?"Review":"Results"}</h1></div>
+    <div class="spec"><div><b>${fmt(S.elapsed)}</b><small>time used</small></div><div><b>${n?fmt(S.elapsed/n):"0:00"}</b><small>per question</small></div></div></header>
   <section class="score">
     <div class="big"><div class="label">Score</div><div class="pct" style="color:var(--${pctClass(p)==="mid"?"flag":pctClass(p)})">${p}%</div>
       <div class="sub">${c} correct · ${n-c-skipped} incorrect · ${skipped} unanswered</div><p class="verdict">${verdict}</p></div>
-    <div class="panel"><h3>By domain</h3>${byD}<h3 style="margin-top:6px">By difficulty</h3>${byL}
+    <div class="panel"><h2>By domain</h2>${byD}<h2 style="margin-top:6px">By difficulty</h2>${byL}
       <div class="muted" style="font-size:12px">The vertical line on each bar marks 70%, a reference point only: PMI does not publish its passing score. Your real PMI score report also shows results by domain.</div></div>
   </section>
-  ${weak.length?`<section class="panel weakpanel"><h3>Study these tasks first</h3>
+  ${weak.length?`<section class="panel weakpanel"><h2>Study these tasks first</h2>
     <p class="muted" style="margin:0 0 10px;font-size:14px">Your ${weak.length===1?"weakest ECO task":`${weak.length} weakest ECO tasks`} in this attempt. Practise each with instant feedback.</p>
     <ul class="weaklist">${weak.map(x=>`<li><div><b class="mono">${x.t}</b> ${esc(TASKS[x.t][1])} <span class="muted">· ${x.c}/${x.n} correct (${Math.round(x.c/x.n*100)}%)</span></div><button class="btn sm primary" data-practask="${x.t}">Practise ${x.t}</button></li>`).join("")}</ul>
   </section>`:""}
   <section class="panel tpanel">
-    <details${tStats.length<=6?" open":""}><summary><h3>By ECO task <span class="muted" style="font-weight:400">(${tStats.length} tasks)</span></h3></summary>
+    <details${tStats.length<=6?" open":""}><summary><h2>By ECO task <span class="muted" style="font-weight:400">(${tStats.length} tasks)</span></h2></summary>
       <div class="tgrid">${byT}</div></details>
   </section>
-  <div class="actions">
-    <button class="btn primary" data-act="retryThis" ${wrongIds.length?"":"disabled"}>Retry ${wrongIds.length} mistake${wrongIds.length===1?"":"s"}</button>
-    <button class="btn" data-act="redoThis">Retake all ${n}</button>
-    <button class="btn" data-act="history">Back to history</button>
-    ${feedbackLink("btn")}
-  </div>
+  <div class="actions">${actionBtns(true)}${feedbackLink("btn")}</div>
   ${SITE.feedbackForm?`<p class="muted" style="font-size:14px;margin:8px 0 0">How useful was this practice? <a href="${esc(SITE.feedbackForm)}" target="_blank" rel="noopener">Rate the app from 1 to 5</a>. It takes 30 seconds, and no email is needed.</p>`:""}
-  <div class="tabs" role="tablist">
-    ${[["all","All",flt.all.length],["wrong","Incorrect",flt.wrong.length],["skip","Unanswered",flt.skip.length],["flag","Flagged",flt.flag.length]].map(([k,t,cnt])=>`<button class="tab ${reviewFilter===k?"on":""}" data-filter="${k}" role="tab" aria-selected="${reviewFilter===k}">${t} · ${cnt}</button>`).join("")}
+  <h2 class="revhead" id="revHead">Review your answers</h2>
+  <div class="tabs" role="group" aria-label="Show questions">
+    ${[["all","All",flt.all.length],["wrong","Incorrect",flt.wrong.length],["skip","Unanswered",flt.skip.length],["flag","Flagged",flt.flag.length]].map(([k,t,cnt])=>`<button type="button" class="tab ${reviewFilter===k?"on":""}" data-filter="${k}" aria-pressed="${reviewFilter===k}">${t} · ${cnt}</button>`).join("")}
   </div>
-  <section class="rev">${items||'<div class="empty">No questions here.</div>'}</section>`;
+  <section class="rev" aria-labelledby="revHead">${items||`<div class="empty">No ${({wrong:"incorrect",skip:"unanswered",flag:"flagged"})[reviewFilter]||""} questions in this attempt.</div>`}</section>
+  ${list.length>3?`<div class="actions endactions"><a class="btn" href="#resTitle" data-act="toTop">↑ Back to top</a>${actionBtns(false)}</div>`:""}`;
 }
 
 function isLocked(b){const v=S.ans[b.id];return S.instant&&v!==undefined&&(!multi(b)||v.length>=need(b))}
@@ -491,7 +497,7 @@ document.addEventListener("click",e=>{
   if(t.dataset.lang){lang=t.dataset.lang;store.set("lang",lang);const y=window.scrollY;render();window.scrollTo(0,y);return}
   if(t.dataset.pick!==undefined){pick(+t.dataset.pick);return}
   if(t.dataset.jump!==undefined){const i=+t.dataset.jump;if(!canGo(i))return;S.idx=i;save();render();return}
-  if(t.dataset.filter){reviewFilter=t.dataset.filter;render();return}
+  if(t.dataset.filter){reviewFilter=t.dataset.filter;render();$(`[data-filter="${reviewFilter}"]`)?.focus();return}
   const a=t.dataset.act;
   if(a==="close"&&t.classList.contains("overlay")&&e.target!==t)return;
   switch(a){
@@ -523,7 +529,8 @@ document.addEventListener("click",e=>{
     case "toCustom":{const c=$("#custom");if(c){c.scrollIntoView({behavior:"smooth",block:"start"});setTimeout(()=>$("#startCustom")?.focus({preventScroll:true}),400)}break}
     case "theme":setTheme(t.dataset.themeV,t.closest(".bar")?"bar":t.closest(".topnav")?"topnav":t.closest(".mast")?"mast":"");break;
     case "redoThis":redo(S);break;
-    case "history":S=null;go("home");document.querySelector(".ledger")?.scrollIntoView();break;
+    case "history":S=null;go("home");$(".ledger")?.scrollIntoView();$("#histHead")?.focus({preventScroll:true});break;
+    case "toTop":e.preventDefault();window.scrollTo(0,0);$("#resTitle")?.focus({preventScroll:true});break;
   }
 });
 document.addEventListener("change",e=>{if(view==="home"&&e.target.matches("input"))syncCustom()});
@@ -740,7 +747,9 @@ function routeFromHash(){
   view=h==="about"?"about":h==="guide"?"guide":h==="cards"?"cards":"home";
   if(view==="cards"&&!FC.ids.length)fcBuild();
 }
-window.addEventListener("hashchange",()=>{if(view==="exam"||view==="result")return;if(view==="cardq")view="cards";routeFromHash();render();window.scrollTo(0,0)});
+window.addEventListener("hashchange",()=>{if(view==="exam")return;
+  if(view==="result"){if(location.hash==="#/results")return;S=null;view="home"} // results are saved in history, so leaving is safe
+  if(view==="cardq")view="cards";routeFromHash();render();window.scrollTo(0,0)});
 
 /* ---------- start: load the question bank, then draw ---------- */
 async function loadBank(){
