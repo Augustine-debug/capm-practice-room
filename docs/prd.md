@@ -1,6 +1,6 @@
 # PRD: CAPM Practice Room (MVP)
 
-> **Status: Approved** · Version 1.4 · Approved by Duy Nguyễn on 21 November 2026, updated 22 November 2026.
+> **Status: Approved** · Version 1.5 · Approved by Duy Nguyễn on 21 November 2026, updated 22 November 2026.
 > This file is the source of truth for the product requirements. Any change in scope raises the version and gets a line in the [change log](#change-log). Acceptance criteria are tracked in the linked GitHub issues and ticked there when a feature is built and tested.
 
 ## Overview
@@ -154,6 +154,7 @@ Existing · [#17](https://github.com/Augustine-debug/capm-practice-room/issues/1
 - A list of attempts: date, mode, number of questions, score %.
 - The review page of each attempt can be opened again.
 - The app states that history is kept only in this browser and is lost if browser data is cleared.
+- Each attempt can be deleted, and the whole history can be cleared, each after a confirmation; neither changes the Review mistakes list. (Added in v1.5.)
 
 ## Epic E: Language, information pages, feedback and themes
 
@@ -269,6 +270,7 @@ These apply to every screen and are checked in testing ([#24](https://github.com
 
 | Version | Date | Change | Approved by |
 |---|---|---|---|
+| 1.5 | 22/11/2026 | D3: delete one attempt or clear the whole history, with confirmation | Duy |
 | 1.4 | 22/11/2026 | PRD moved into the repo as the source of truth and translated into English; stories linked to their GitHub issues | Duy |
 | 1.3 | 22/11/2026 | Dark mode moved into the launch release (E7, #25); v1.1 = #26 and #28; v1.2 (not a priority) = #29; offline mode dropped (#27) | Duy |
 | 1.2 | 21/11/2026 | Hosting moved from GitHub Pages to Vercel, code stays on GitHub; question bank stays JSON, so running locally needs a local server | Duy |
