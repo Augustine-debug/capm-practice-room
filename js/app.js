@@ -56,8 +56,14 @@ const SITE={
   github:"https://github.com/Augustine-debug",
   linkedin:"",            // paste the LinkedIn profile URL here; the link shows only when this is set
   bankUpdated:"21 November 2026",
-  pmi:"https://www.pmi.org/capm"
+  pmi:"https://www.pmi.org/capm",
+  // Google Form links (E4). reportForm is the form's pre-filled link with the question ID field set to QID;
+  // feedbackForm is the plain link. Buttons appear only when these are filled in.
+  reportForm:"https://docs.google.com/forms/d/e/1FAIpQLSehQI1ccBgejCfve9nVBmqd46BuW_fVeUvaOKacZtvE1lwfIg/viewform?usp=pp_url&entry.1779748649=Report+a+problem+with+a+question&entry.829120462=QID",
+  feedbackForm:"https://docs.google.com/forms/d/e/1FAIpQLSehQI1ccBgejCfve9nVBmqd46BuW_fVeUvaOKacZtvE1lwfIg/viewform"
 };
+const reportLink=b=>SITE.reportForm?`<a class="report" href="${esc(SITE.reportForm.replace("QID",encodeURIComponent(b.id)))}" target="_blank" rel="noopener">⚑ Report this question</a>`:"";
+const feedbackLink=(cls="btn sm")=>SITE.feedbackForm?`<a class="${cls}" href="${esc(SITE.feedbackForm)}" target="_blank" rel="noopener">Share feedback</a>`:"";
 
 let S=null;          // active session
 let view="home";
@@ -242,6 +248,7 @@ function homeHTML(){
     <p style="margin:0">Your answers in the attempt in progress will be deleted and it will not be saved to your history.</p>
     <div class="row"><button class="btn" data-act="close">Keep it</button><button class="btn primary" data-act="discardYes">Discard</button></div>
   </div></div>`:""}
+  ${SITE.feedbackForm?`<p class="fbline">Found a wrong answer or have an idea? <a href="${esc(SITE.feedbackForm)}" target="_blank" rel="noopener">Share feedback</a> and rate the app from 1 to 5. No email needed.</p>`:""}
   <section class="ledger">
     <h2>History</h2>
     <p class="muted" style="margin:0 0 10px;font-size:14px">Open a past attempt to review every question with explanations, retake the whole set, or retry only the questions you missed.</p>
@@ -323,7 +330,7 @@ function examHTML(){
       <p class="qtext">${esc(b.q)}</p>
       <div class="opts">${opts}</div>
       ${multi(b)&&!locked?`<p class="hint" style="margin:-4px 0 12px">Multiple response: ${(sel||[]).length}/${need(b)} selected. Tap again to unselect.</p>`:""}
-      ${locked?`<div class="explain ${okAns(sel,b)?"ok":"bad"}"><div class="exhead"><b>${okAns(sel,b)?"Correct":"Incorrect · answer "+okLetters(b,perm)}</b>${langSwitch()}</div>${shortHTML(b)}${detailHTML(b,perm)}</div>`:""}
+      ${locked?`<div class="explain ${okAns(sel,b)?"ok":"bad"}"><div class="exhead"><b>${okAns(sel,b)?"Correct":"Incorrect · answer "+okLetters(b,perm)}</b>${langSwitch()}</div>${shortHTML(b)}${detailHTML(b,perm)}<div class="exfoot">${reportLink(b)}</div></div>`:""}
       <div class="qnav">
         <button class="btn" data-act="prev" ${S.idx===r0?"disabled":""}>← Previous</button>
         <div class="grp">
@@ -379,7 +386,7 @@ function resultHTML(){
       return `<div class="opt ${cls}"><span class="k">${L[k]}</span><span class="t">${esc(b.o[orig])}${picked(sel,orig)?' <small class="muted">· your answer</small>':""}</span></div>`}).join("");
     return `<article class="ritem ${st}"><div class="meta"><span class="qnum">QUESTION ${pos+1}</span><span class="chip">Domain ${b.d}</span><span class="chip lv${b.lv}">${LEVELS[b.lv]}</span><span class="chip eco" title="${esc((TASKS[b.t]||[""])[0])}">ECO ${b.t}</span>${st==="skip"?'<span class="chip">Unanswered</span>':""}${S.flag[id]?'<span class="chip" style="color:var(--flag)">Flagged</span>':""}</div>
       ${b.ctx?`<div class="ctx">${esc(b.ctx)}</div>`:""}<p class="qtext">${esc(b.q)}</p><div class="opts">${opts}</div>
-      <div class="explain"><div class="exhead"><b>Answer: ${okLetters(b,perm)}</b>${langSwitch()}</div>${shortHTML(b)}${detailHTML(b,perm)}</div></article>`}).join("");
+      <div class="explain"><div class="exhead"><b>Answer: ${okLetters(b,perm)}</b>${langSwitch()}</div>${shortHTML(b)}${detailHTML(b,perm)}<div class="exfoot">${reportLink(b)}</div></div></article>`}).join("");
   return `
   <header class="mast"><div><div class="label">${modeName[S.mode]} · ${n} question${n===1?"":"s"}${S.t?" · "+when(S.t):""}</div><h1>${S.fromHistory?"Review":"Results"}</h1></div>
     <div class="spec"><div><b>${fmt(S.elapsed)}</b><small>time used</small></div><div><b>${n?fmt(S.elapsed/n):"0:00"}</b><small>per question</small></div></div></header>
@@ -401,7 +408,9 @@ function resultHTML(){
     <button class="btn primary" data-act="retryThis" ${wrongIds.length?"":"disabled"}>Retry ${wrongIds.length} mistake${wrongIds.length===1?"":"s"}</button>
     <button class="btn" data-act="redoThis">Retake all ${n}</button>
     <button class="btn" data-act="history">Back to history</button>
+    ${feedbackLink("btn")}
   </div>
+  ${SITE.feedbackForm?`<p class="muted" style="font-size:14px;margin:8px 0 0">How useful was this practice? <a href="${esc(SITE.feedbackForm)}" target="_blank" rel="noopener">Rate the app from 1 to 5</a>. It takes 30 seconds, and no email is needed.</p>`:""}
   <div class="tabs" role="tablist">
     ${[["all","All",flt.all.length],["wrong","Incorrect",flt.wrong.length],["skip","Unanswered",flt.skip.length],["flag","Flagged",flt.flag.length]].map(([k,t,cnt])=>`<button class="tab ${reviewFilter===k?"on":""}" data-filter="${k}" role="tab" aria-selected="${reviewFilter===k}">${t} · ${cnt}</button>`).join("")}
   </div>
@@ -488,7 +497,7 @@ function navHTML(cur){
 function footHTML(){
   return `<footer class="foot">
     <div><a class="btn sm" href="${SITE.kofi}" target="_blank" rel="noopener">☕ Support this project</a></div>
-    <div class="links"><a href="#/guide">Exam guide</a><a href="#/about">About</a><a href="${SITE.repo}" target="_blank" rel="noopener">GitHub</a></div>
+    <div class="links">${SITE.feedbackForm?`<a href="${esc(SITE.feedbackForm)}" target="_blank" rel="noopener">Share feedback</a>`:""}<a href="#/guide">Exam guide</a><a href="#/about">About</a><a href="${SITE.repo}" target="_blank" rel="noopener">GitHub</a></div>
     <p class="muted">CAPM®, PMP®, PMBOK® and PMI® are registered marks of the Project Management Institute, Inc. This free app is not affiliated with or endorsed by PMI and contains no real exam questions.</p>
   </footer>`;
 }
@@ -526,7 +535,7 @@ function aboutHTML(){
 
   <h2>Who made this</h2>
   <p>Built by <b>${esc(SITE.maker)}</b> while preparing for the CAPM, as a free resource for other candidates. ${ext(SITE.github,"GitHub")}${SITE.linkedin?` · ${ext(SITE.linkedin,"LinkedIn")}`:""}</p>
-  <p>Found a wrong answer or a bug? ${ext(SITE.repo+"/issues","Report it on GitHub")}. If the app helped you, you can ${ext(SITE.kofi,"buy me a coffee on Ko-fi")}.</p>
+  <p>Found a wrong answer or a bug? ${SITE.feedbackForm?ext(SITE.feedbackForm,"Tell us with the feedback form")+" (no email needed) or "+ext(SITE.repo+"/issues","open a GitHub issue"):ext(SITE.repo+"/issues","Report it on GitHub")}. If the app helped you, you can ${ext(SITE.kofi,"buy me a coffee on Ko-fi")}.</p>
   </article>`;
 }
 function guideHTML(){
@@ -621,7 +630,7 @@ function cardsHTML(){
   const b=fcCard(),ans=(Array.isArray(b.a)?b.a:[b.a]),mark=cardMarks[b.id];
   const opts=b.o.map((o,i)=>`<li class="${FC.flipped&&ans.includes(i)?"right":""}"><span class="k">${L[i]}</span><span>${esc(o)}</span></li>`).join("");
   const back=FC.flipped?`<div class="fcback"${lang==="vi"?' lang="vi"':""}><div class="exhead"><b>Answer: ${ans.map(i=>L[i]).join(", ")}</b>${langSwitch()}</div>${shortHTML(b)}
-      ${b.rel?`<button class="btn sm" data-fc="related">Try a related question →</button>`:""}</div>`:"";
+      ${b.rel?`<button class="btn sm" data-fc="related">Try a related question →</button>`:""}${reportLink(b)}</div>`:"";
   return head+`<section class="fccard ${FC.flipped?"flipped":""}" aria-live="polite">
     <div class="meta"><span class="qnum">CARD ${FC.idx+1} / ${FC.ids.length}</span><span class="chip">Domain ${b.d}</span><span class="chip eco">ECO ${b.t}</span>${mark?`<span class="chip ${mark==="know"?"known":""}">${mark==="know"?"Known":"Review again"}</span>`:""}</div>
     <div class="fcface" data-fc="flip"><p class="qtext">${esc(b.q)}</p><ol class="fcopts">${opts}</ol>
@@ -639,7 +648,7 @@ function cardQHTML(){
   const opts=perm.map((o,k)=>`<div class="opt ${isAns(b,o)?"right":""}"><span class="k">${L[k]}</span><span class="t">${esc(b.o[o])}</span></div>`).join("");
   return `<section class="qcard cardq"><div class="meta"><span class="qnum">RELATED QUESTION</span><span class="chip">Domain ${b.d}</span><span class="chip eco">ECO ${b.t}</span><span class="chip lv${b.lv}">${LEVELS[b.lv]}</span></div>
     ${b.ctx?`<div class="ctx">${esc(b.ctx)}</div>`:""}<p class="qtext">${esc(b.q)}</p><div class="opts">${opts}</div>
-    <div class="explain"><div class="exhead"><b>Answer: ${okLetters(b,perm)}</b>${langSwitch()}</div>${shortHTML(b)}${detailHTML(b,perm)}</div>
+    <div class="explain"><div class="exhead"><b>Answer: ${okLetters(b,perm)}</b>${langSwitch()}</div>${shortHTML(b)}${detailHTML(b,perm)}<div class="exfoot">${reportLink(b)}</div></div>
     <div class="qnav"><button class="btn primary" data-fc="back">← Back to card ${FC.idx+1}</button></div></section>`;
 }
 // keyboard and swipe for flashcards

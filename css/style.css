@@ -275,3 +275,10 @@ tr:last-child td{border-bottom:0}
 .linkbtn{background:none;border:0;padding:0;color:var(--accent);text-decoration:underline;font:inherit;cursor:pointer}
 .cardq{max-width:760px}
 @media (max-width:480px){.topnav .links a{padding:6px 8px;font-size:15px}.topnav .links{gap:0}}
+/* feedback links (E4) */
+.exfoot{margin-top:10px;display:flex;justify-content:flex-end}
+.exfoot:empty{display:none}
+a.report{font-size:14px;color:var(--muted);text-decoration:underline;display:inline-flex;align-items:center;min-height:32px}
+a.report:hover{color:var(--accent)}
+.fbline{margin:20px 0 0;font-size:15px}
+.fbline a{color:var(--accent)}
