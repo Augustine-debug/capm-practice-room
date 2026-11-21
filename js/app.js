@@ -315,7 +315,7 @@ function breakHTML(){
     <h2>Scheduled break</h2>
     <div class="brkclock"><b id="brk">${fmt(BREAK-S.brk)}</b><small>remaining</small></div>
     <p>Section 1 is locked (questions 1–75, ${a1}/${SEC} answered). The exam clock is paused, with <b class="mono">${fmt(S.limit-S.elapsed)}</b> left for section 2. Section 2 starts automatically after 10 minutes, or you can start it now.</p>
-    <div class="row"><button class="btn ghost" data-act="pause">Pause</button><button class="btn primary" data-act="sec2">Start section 2 →</button></div>
+    <div class="row">${themeBtn()}<button class="btn ghost" data-act="pause">Pause</button><button class="btn primary" data-act="sec2">Start section 2 →</button></div>
   </section>`;
 }
 function examHTML(){
@@ -346,6 +346,7 @@ function examHTML(){
     ${S.phase?`<div class="stat hideable"><b>${S.phase==="s1"?1:2}/2</b><small>section</small></div>`:""}
     <div class="stat timer ${S.limit&&rem<=300?"low":""}" id="timer"><b>${fmt(rem)}</b><small>${S.limit?"left":"elapsed"}</small></div>
     <div class="spacer"></div>
+    ${themeBtn("inbar")}
     <button class="btn ghost" data-act="pause">Pause</button>
     <button class="btn primary" data-act="ask">Submit</button>
     <div class="progress"><i style="width:${answered/n*100}%"></i></div>
@@ -416,7 +417,7 @@ function resultHTML(){
       <div class="explain"><div class="exhead"><b>Answer: ${okLetters(b,perm)}</b>${langSwitch()}</div>${shortHTML(b)}${detailHTML(b,perm)}<div class="exfoot">${reportLink(b)}</div></div></article>`}).join("");
   return `
   <header class="mast"><div><div class="label">${modeName[S.mode]} · ${n} question${n===1?"":"s"}${S.t?" · "+when(S.t):""}</div><h1>${S.fromHistory?"Review":"Results"}</h1></div>
-    <div class="spec"><div><b>${fmt(S.elapsed)}</b><small>time used</small></div><div><b>${n?fmt(S.elapsed/n):"0:00"}</b><small>per question</small></div></div></header>
+    <div class="spec"><div><b>${fmt(S.elapsed)}</b><small>time used</small></div><div><b>${n?fmt(S.elapsed/n):"0:00"}</b><small>per question</small></div>${themeBtn()}</div></header>
   <section class="score">
     <div class="big"><div class="label">Score</div><div class="pct" style="color:var(--${pctClass(p)==="mid"?"flag":pctClass(p)})">${p}%</div>
       <div class="sub">${c} correct · ${n-c-skipped} incorrect · ${skipped} unanswered</div><p class="verdict">${verdict}</p></div>
@@ -489,6 +490,7 @@ document.addEventListener("click",e=>{
     case "submit":submit();break;
     case "pause":save();S=null;go("home");break;
     case "home":S=null;go("home");break;
+    case "theme":nextTheme();break;
     case "redoThis":redo(S);break;
     case "history":S=null;go("home");document.querySelector(".ledger")?.scrollIntoView();break;
   }
@@ -516,10 +518,19 @@ document.addEventListener("visibilitychange",()=>{if(document.hidden)save()});
 
 
 /* ---------- site navigation, footer and info pages ---------- */
+/* ---------- theme (E7, #25): System follows the device; Light/Dark override it ----------
+   index.html applies the saved choice before the page draws, so there is no flash. */
+const THEMES={system:["System",'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg>'],light:["Light",'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>'],dark:["Dark",'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>']};
+let theme=store.get("theme","system");if(!THEMES[theme])theme="system";
+function applyTheme(){const r=document.documentElement;if(theme==="system")delete r.dataset.theme;else r.dataset.theme=theme}
+applyTheme();
+function nextTheme(){theme=theme==="system"?"light":theme==="light"?"dark":"system";
+  theme==="system"?store.del("theme"):store.set("theme",theme);applyTheme();render();$("[data-act=theme]")?.focus()}
+const themeBtn=(cls="")=>`<button type="button" class="themesw ${cls}" data-act="theme" aria-label="Theme: ${THEMES[theme][0]}. Change theme" title="Theme: ${THEMES[theme][0]} (click to change)"><span aria-hidden="true">${THEMES[theme][1]}</span><span class="tlabel">${THEMES[theme][0]}</span></button>`;
 function navHTML(cur){
   const a=(href,k,t)=>`<a href="${href}"${cur===k?' aria-current="page"':""}>${t}</a>`;
   return `<nav class="topnav" aria-label="Main"><a class="brand" href="#/">CAPM <span>Practice Room</span></a>
-    <div class="links">${a("#/","home","Practice")}${a("#/cards","cards","Flashcards")}${a("#/guide","guide","Exam guide")}${a("#/about","about","About")}</div></nav>`;
+    <div class="links">${a("#/","home","Practice")}${a("#/cards","cards","Flashcards")}${a("#/guide","guide","Exam guide")}${a("#/about","about","About")}</div>${themeBtn()}</nav>`;
 }
 function footHTML(){
   return `<footer class="foot">
