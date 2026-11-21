@@ -69,6 +69,13 @@ let S=null;          // active session
 let view="home";
 let tick=null;
 let reviewFilter="all";
+let exOpen={};
+let revShown=20; // how many review items are drawn; "Show more" adds 20 // explanation open/closed per question on the review, kept across re-renders
+/* Where a review starts: a long attempt (more than 20 questions) opens on its incorrect answers
+   with explanations folded; a short one shows everything, unfolded. */
+function startReview(){const long=S.ids.length>20;exOpen={};revShown=20;
+  reviewFilter=long&&S.ids.some(id=>S.ans[id]!==undefined&&!isRight(id))?"wrong":"all"}
+const exIsOpen=id=>id in exOpen?exOpen[id]:S.ids.length<=20;
 let railCollapsed=true;
 let confirmOpen=false;
 let confirmKind="submit";
@@ -155,7 +162,7 @@ function submit(){
     ids:S.ids,perm:S.perm,ans:S.ans,flag:S.flag,instant:S.instant,limit:S.limit});
   store.set("history",hist.slice(0,30));
   store.del("session");
-  reviewFilter="all";
+  startReview();
   go("result");
 }
 function fromHistory(t){
@@ -200,6 +207,8 @@ function markScrollRegions(){document.querySelectorAll(".tablewrap").forEach(w=>
     if(!w.hasAttribute("aria-label")){const h=w.querySelector("th");w.setAttribute("aria-label",(h?h.textContent+" table":"Table")+", scroll sideways")}}
   else{w.removeAttribute("tabindex");w.removeAttribute("role");w.removeAttribute("aria-label")}})}
 window.addEventListener("resize",()=>markScrollRegions());
+document.addEventListener("toggle",e=>{const d=e.target;if(!(d instanceof HTMLDetailsElement)||!d.classList.contains("rexp"))return;
+  exOpen[d.dataset.exid]=d.open;const l=d.querySelector(".rexlabel");if(l)l.textContent=d.open?"Hide explanation":"Show explanation"},true);
 /* The navigator grid is rebuilt on every render. Keep its scroll position, and scroll it
    (not the page) just enough to show the current question. */
 function keepNavigatorInView(top){
@@ -365,11 +374,12 @@ function examHTML(){
   const secIds=S.ids.slice(r0,r1+1),secUn=secIds.filter(id=>S.ans[id]===undefined).length;
   const unanswered=n-answered,flagged=Object.values(S.flag).filter(Boolean).length;
   return `
+  <h1 class="sr-only">${modeName[S.mode]}, question ${S.idx+1} of ${n}</h1>
   <div class="bar">
-    <div class="title">${modeName[S.mode]}</div>
+    <div class="title" aria-hidden="true">${modeName[S.mode]}</div>
     <div class="stat"><b>${S.idx+1}/${n}</b><small>question</small></div>
     <div class="stat hideable"><b>${answered}</b><small>answered</small></div>
-    ${S.mode!=="full"&&answered?`<div class="stat" title="Reference pace on the real exam: 72 seconds per question"><b>${fmt(S.elapsed/answered)}</b><small>avg · target 1:12</small></div>`:""}
+    ${S.mode!=="full"&&answered?`<div class="stat hideable" title="Reference pace on the real exam: 72 seconds per question"><b>${fmt(S.elapsed/answered)}</b><small>avg · target 1:12</small></div>`:""}
     ${S.phase?`<div class="stat hideable"><b>${S.phase==="s1"?1:2}/2</b><small>section</small></div>`:""}
     <div class="stat timer ${S.limit&&rem<=300?"low":""}" id="timer"><b>${fmt(rem)}</b><small>${S.limit?"left":"elapsed"}</small></div>
     <div class="spacer"></div>
@@ -380,16 +390,16 @@ function examHTML(){
   </div>
   <div class="exam">
     <section class="qcard">
-      <div class="meta"><span class="qnum">QUESTION ${S.idx+1}</span><span class="chip">Domain ${d.n} · ${esc(d.short)}</span><span class="chip lv${b.lv}">${LEVELS[b.lv]}</span><span class="chip eco" title="${esc((TASKS[b.t]||[""])[0])}">ECO ${b.t}</span>${multi(b)?`<span class="chip new">Select ${need(b)}</span>`:""}<span class="chip">#${b.id}</span></div>
+      <div class="meta"><span class="qnum">QUESTION ${S.idx+1}</span>${S.mode==="full"?"":`<span class="chip">Domain ${d.n} · ${esc(d.short)}</span><span class="chip lv${b.lv}">${LEVELS[b.lv]}</span><span class="chip eco" title="${esc((TASKS[b.t]||[""])[0])}">ECO ${b.t}</span>`}${multi(b)?`<span class="chip new">Select ${need(b)}</span>`:""}${S.mode==="full"?"":`<span class="chip">#${b.id}</span>`}</div>
       ${b.ctx?`<div class="ctx">${esc(b.ctx)}</div>`:""}
       <p class="qtext">${esc(b.q)}</p>
       <div class="opts">${opts}</div>
       ${multi(b)&&!locked?`<p class="hint" style="margin:-4px 0 12px">Multiple response: ${(sel||[]).length}/${need(b)} selected. Tap again to unselect.</p>`:""}
       ${locked?`<div class="explain ${okAns(sel,b)?"ok":"bad"}"><div class="exhead"><b>${okAns(sel,b)?"Correct":"Incorrect · answer "+okLetters(b,perm)}</b>${langSwitch()}</div>${shortHTML(b)}${detailHTML(b,perm)}<div class="exfoot">${reportLink(b)}</div></div>`:""}
       <div class="qnav">
-        <button class="btn" data-act="prev" ${S.idx===r0?"disabled":""}>← Previous</button>
+        <button class="btn" data-act="prev" ${S.idx===r0?"disabled":""} aria-label="Previous question">← <span class="lg">Previous</span><span class="sm">Prev</span></button>
         <div class="grp">
-          <button class="btn ${S.flag[b.id]?"flagon":""}" data-act="flag">${S.flag[b.id]?"Unflag":"Flag for review"}</button>
+          <button class="btn ${S.flag[b.id]?"flagon":""}" data-act="flag" aria-pressed="${!!S.flag[b.id]}">⚑ <span class="lg">${S.flag[b.id]?"Unflag":"Flag for review"}</span><span class="sm">${S.flag[b.id]?"Unflag":"Flag"}</span></button>
           ${S.phase==="s1"&&S.idx===SEC-1?`<button class="btn primary" data-act="next">End section 1 →</button>`:S.idx<n-1?`<button class="btn primary" data-act="next">Next →</button>`:`<button class="btn primary" data-act="ask">Submit</button>`}
         </div>
       </div>
@@ -440,7 +450,7 @@ function resultHTML(){
   const wrongIds=ids.filter(id=>!isRight(id));
   const flt={all:ids,wrong:ids.filter(id=>S.ans[id]!==undefined&&!isRight(id)),skip:ids.filter(id=>S.ans[id]===undefined),flag:ids.filter(id=>S.flag[id])};
   const list=flt[reviewFilter];
-  const items=list.map(id=>{const b=BANK[id-1],sel=S.ans[id],perm=S.perm[id],pos=ids.indexOf(id);
+  const items=list.slice(0,revShown).map(id=>{const b=BANK[id-1],sel=S.ans[id],perm=S.perm[id],pos=ids.indexOf(id);
     const st=sel===undefined?"skip":okAns(sel,b)?"ok":"bad";
     const opts=perm.map((orig,k)=>{const ok=isAns(b,orig),mine=picked(sel,orig),cls=ok?"right":mine?"wrong":"";
       const tag=ok&&mine?"✓ Your answer, correct":ok?"✓ Correct answer":mine?"✗ Your answer":"";
@@ -448,7 +458,8 @@ function resultHTML(){
     const stChip=st==="ok"?'<span class="chip st ok">✓ Correct</span>':st==="bad"?'<span class="chip st bad">✗ Incorrect</span>':'<span class="chip st">Unanswered</span>';
     return `<article class="ritem ${st}" aria-labelledby="rq${id}"><div class="meta"><h3 class="qnum" id="rq${id}">Question ${pos+1}</h3>${stChip}<span class="chip">Domain ${b.d}</span><span class="chip lv${b.lv}">${LEVELS[b.lv]}</span><span class="chip eco" title="${esc((TASKS[b.t]||[""])[0])}">ECO ${b.t}</span>${S.flag[id]?'<span class="chip" style="color:var(--flag)">⚑ Flagged</span>':""}</div>
       ${b.ctx?`<div class="ctx">${esc(b.ctx)}</div>`:""}<p class="qtext">${esc(b.q)}</p><div class="opts">${opts}</div>
-      <div class="explain"><div class="exhead"><b>Answer: ${okLetters(b,perm)}</b>${langSwitch()}</div>${shortHTML(b)}${detailHTML(b,perm)}<div class="exfoot">${reportLink(b)}</div></div></article>`}).join("");
+      <details class="explain rexp" data-exid="${id}"${exIsOpen(id)?" open":""}><summary><b>Answer: ${okLetters(b,perm)}</b><span class="rexlabel">${exIsOpen(id)?"Hide explanation":"Show explanation"}</span></summary>
+        <div class="exhead">${langSwitch()}</div>${shortHTML(b)}${detailHTML(b,perm)}<div class="exfoot">${reportLink(b)}</div></details></article>`}).join("");
   return `
   <header class="mast"><div><div class="label">${modeName[S.mode]} · ${n} question${n===1?"":"s"}${S.t?" · "+when(S.t):""}</div><h1 id="resTitle" tabindex="-1">${S.fromHistory?"Review":"Results"}</h1></div>
     <div class="spec"><div><b>${fmt(S.elapsed)}</b><small>time used</small></div><div><b>${n?fmt(S.elapsed/n):"0:00"}</b><small>per question</small></div></div></header>
@@ -472,7 +483,9 @@ function resultHTML(){
   <div class="tabs" role="group" aria-label="Show questions">
     ${[["all","All",flt.all.length],["wrong","Incorrect",flt.wrong.length],["skip","Unanswered",flt.skip.length],["flag","Flagged",flt.flag.length]].map(([k,t,cnt])=>`<button type="button" class="tab ${reviewFilter===k?"on":""}" data-filter="${k}" aria-pressed="${reviewFilter===k}">${t} · ${cnt}</button>`).join("")}
   </div>
+  ${list.length?`<div class="revtools"><button type="button" class="linkbtn" data-act="exAll">Show all explanations</button><button type="button" class="linkbtn" data-act="exNone">Hide all explanations</button></div>`:""}
   <section class="rev" aria-labelledby="revHead">${items||`<div class="empty">No ${({wrong:"incorrect",skip:"unanswered",flag:"flagged"})[reviewFilter]||""} questions in this attempt.</div>`}</section>
+  ${list.length>revShown?`<div class="more"><button type="button" class="btn" data-act="revMore">Show ${Math.min(20,list.length-revShown)} more <span class="muted">(${list.length-revShown} left)</span></button></div>`:""}
   ${list.length>3?`<div class="actions endactions"><a class="btn" href="#resTitle" data-act="toTop">↑ Back to top</a>${actionBtns(false)}</div>`:""}`;
 }
 
@@ -488,7 +501,7 @@ function pick(orig){const b=q();if(isLocked(b))return;
 document.addEventListener("click",e=>{
   const t=e.target.closest("[data-act],[data-fc],[data-lang],[data-practask],[data-pick],[data-jump],[data-filter],[data-review],[data-delhist],[data-redo],[data-redowrong]");if(!t)return;
   if(t.dataset.delhist){delT=+t.dataset.delhist;confirmKind="delhist";confirmOpen=true;render();$(".dialog .btn:not(.danger)")?.focus();return}
-  if(t.dataset.review){const h=fromHistory(+t.dataset.review);if(h){S=h;reviewFilter="all";go("result")}return}
+  if(t.dataset.review){const h=fromHistory(+t.dataset.review);if(h){S=h;startReview();go("result")}return}
   if(t.dataset.redo){const h=fromHistory(+t.dataset.redo);if(h)redo(h);return}
   if(t.dataset.redowrong){const h=fromHistory(+t.dataset.redowrong);if(h){const w=h.ids.filter(id=>!okAns(h.ans[id],BANK[id-1]));if(w.length)newSession("retry",shuffle(w),{instant:true})}return}
   if(t.dataset.practask){const ids=shuffleKeepGroups(BANK.filter(b=>b.mode==="exam"&&b.t===t.dataset.practask).map(b=>b.id)).slice(0,20);
@@ -497,7 +510,7 @@ document.addEventListener("click",e=>{
   if(t.dataset.lang){lang=t.dataset.lang;store.set("lang",lang);const y=window.scrollY;render();window.scrollTo(0,y);return}
   if(t.dataset.pick!==undefined){pick(+t.dataset.pick);return}
   if(t.dataset.jump!==undefined){const i=+t.dataset.jump;if(!canGo(i))return;S.idx=i;save();render();return}
-  if(t.dataset.filter){reviewFilter=t.dataset.filter;render();$(`[data-filter="${reviewFilter}"]`)?.focus();return}
+  if(t.dataset.filter){reviewFilter=t.dataset.filter;revShown=20;render();$(`[data-filter="${reviewFilter}"]`)?.focus();return}
   const a=t.dataset.act;
   if(a==="close"&&t.classList.contains("overlay")&&e.target!==t)return;
   switch(a){
@@ -530,6 +543,8 @@ document.addEventListener("click",e=>{
     case "theme":setTheme(t.dataset.themeV,t.closest(".bar")?"bar":t.closest(".topnav")?"topnav":t.closest(".mast")?"mast":"");break;
     case "redoThis":redo(S);break;
     case "history":S=null;go("home");$(".ledger")?.scrollIntoView();$("#histHead")?.focus({preventScroll:true});break;
+    case "revMore":{const first=revShown;revShown+=20;render();$(`.ritem:nth-child(${first+1}) h3`)?.setAttribute("tabindex","-1");$(`.ritem:nth-child(${first+1}) h3`)?.focus();break}
+    case "exAll":case "exNone":{const o=a==="exAll";document.querySelectorAll("details.rexp").forEach(d=>{exOpen[d.dataset.exid]=o;d.open=o});break}
     case "toTop":e.preventDefault();window.scrollTo(0,0);$("#resTitle")?.focus({preventScroll:true});break;
   }
 });
