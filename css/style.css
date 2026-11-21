@@ -250,6 +250,22 @@ h3.qnum{margin:0;text-transform:uppercase;letter-spacing:.02em}
   .qcard{padding:16px}
   .qtext{font-size:17px}
   .bar .hideable{display:none}
+  .bar .title{display:none}
+  .bar{gap:8px 14px;padding-block:8px}
+  .bar .btn{min-height:38px;padding:6px 12px}
+}
+.qnav .sm{display:none}
+@media (max-width: 640px){
+  .bar .themesw{display:none}
+  /* question buttons stay within thumb reach at the bottom of the screen */
+  .qcard{padding:16px}
+  .qnav{position:fixed;left:0;right:0;bottom:0;z-index:6;margin:0;padding:10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+    background:var(--surface);border-top:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr 1.3fr;gap:8px}
+  .exam{padding-bottom:84px}
+  .qnav .grp{display:contents}
+  .qnav .btn{justify-content:center;min-height:46px;padding:8px 6px}
+  .qnav .lg{display:none} .qnav .sm{display:inline}
+  .qcard>.hint:last-child{display:none}
 }
 @media (prefers-reduced-motion: reduce){ *{transition:none!important} }
 
@@ -325,3 +341,13 @@ a.report{font-size:14px;color:var(--muted);text-decoration:underline;display:inl
 a.report:hover{color:var(--accent)}
 .fbline{margin:20px 0 0;font-size:15px}
 .fbline a{color:var(--accent)}
+.rexp>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;list-style:none;min-height:32px}
+.rexp>summary::-webkit-details-marker{display:none}
+.rexlabel{color:var(--accent);font-weight:600;font-size:14px}
+.rexlabel::after{content:" ▾"}
+.rexp[open] .rexlabel::after{content:" ▴"}
+.rexp[open]>summary{margin-bottom:6px}
+.rexp .exhead{justify-content:flex-end}
+.more{display:flex;justify-content:center;margin-top:16px}
+.ritem h3:focus{outline:none}
+.revtools{display:flex;gap:16px;flex-wrap:wrap;margin:0 0 12px;font-size:14px}
