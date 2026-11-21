@@ -55,7 +55,7 @@ flowchart TD
 
 ## 3. Practice and review
 
-Custom practice, review mistakes and "practise this task" use the same exam screen, with instant feedback: each answer shows right or wrong, the explanation (EN/VI) and a link to report the question.
+Custom practice, review mistakes and "practice this task" use the same exam screen, with instant feedback: each answer shows right or wrong, the explanation (EN/VI) and a link to report the question.
 
 ```mermaid
 flowchart TD
@@ -72,7 +72,7 @@ flowchart TD
 ```mermaid
 flowchart TD
   R[Results: score, 70% reference mark,<br/>domain and task breakdown] --> Weak[Study these tasks first:<br/>3 weakest ECO tasks]
-  Weak -->|Practise task| Practice[Up to 20 exam questions<br/>on that task]
+  Weak -->|Practice task| Practice[Up to 20 exam questions<br/>on that task]
   R --> Review[Review by tab:<br/>All · Incorrect · Unanswered · Flagged]
   R -->|Redo the wrong ones| RetryThis[Retry this attempt's mistakes]
   R -->|Home| Home([Home])

@@ -231,9 +231,9 @@ function homeHTML(){
   const lChecks=[1,2,3].map(l=>`<label class="chk"><input type="checkbox" id="cl${l}" data-l="${l}" checked><span>${LEVELS[l]}</span><span class="n">${BANK.filter(b=>b.lv===l).length}</span></label>`).join("");
   return `
   <header class="mast">
-    <div><div class="label">CAPM · Exam Content Outline 2023</div><h1>Practise for the <span>CAPM</span> exam</h1>
+    <div><div class="label">CAPM · Exam Content Outline 2023</div><h1>Practice for the <span>CAPM</span> exam</h1>
       <p class="trust"><span>Free</span><span>No sign-up</span><span>${BANK.length} questions with full explanations</span><span>Follows the CAPM ECO 2023</span></p></div>
-    <div class="spec"><div><b>150</b><small>questions</small></div><div><b>180′</b><small>minutes</small></div><div><b>72″</b><small>per question</small></div><div><b>135</b><small>scored</small></div><div><b>10′</b><small>break after Q75</small></div></div>
+    <div class="spec homespec"><div><b>150</b><small>questions</small></div><div><b>180′</b><small>minutes</small></div><div><b>72″</b><small>per question</small></div><div><b>135</b><small>scored</small></div><div><b>10′</b><small>break after Q75</small></div></div>
   </header>
   ${saved&&!saved.done?`<div class="resume"><div><b>You have an attempt in progress.</b> <span class="muted">${modeName[saved.mode]} · ${Object.keys(saved.ans).length}/${saved.ids.length} answered · ${fmt(saved.elapsed)}</span></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-act="discard">Discard</button><button class="btn primary" data-act="resume">Resume</button></div></div>`:""}
@@ -245,19 +245,19 @@ function homeHTML(){
     <article class="mode">
       <div class="label">Mode 1</div>
       <h2>Full mock exam</h2>
-      <p>150 questions drawn at random from ${BANK.filter(b=>b.mode==="exam").length} exam questions, weighted by domain like the real exam (D1 54 · D2 26 · D3 30 · D4 40), with a 3-hour timer. Two sections, as on test day: after question 75 you get an optional 10-minute break (the exam clock stops) and cannot return to section 1. Answers are shown only after you submit.</p>
+      <p>150 questions weighted like the real exam, 3 hours, an optional break after question 75. Answers after you submit.</p>
       <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary go" data-act="full">Start the 150-question exam</button></div>
     </article>
     <article class="mode">
       <div class="label">Mode 2</div>
       <h2>Review mistakes</h2>
-      <p>${wrong.length?`You have <b class="mono">${wrong.length}</b> question${wrong.length===1?"":"s"} you got wrong or left unanswered. A question leaves this list once you answer it correctly.`:"No mistakes yet. After each submitted attempt, questions you got wrong or skipped are collected here."}</p>
+      <p>${wrong.length?`<b class="mono">${wrong.length}</b> question${wrong.length===1?"":"s"} you got wrong or skipped. Each leaves the list once you get it right.`:"No mistakes yet. Questions you get wrong or skip are collected here."}</p>
       <button class="btn go" data-act="retryAll" ${wrong.length?"":"disabled"}>Review ${wrong.length||""} mistake${wrong.length===1?"":"s"}</button>
     </article>
     <article class="mode">
       <div class="label">Mode 3</div>
       <h2>Flashcards</h2>
-      <p>${BANK.filter(b=>b.mode==="definition").length} cards for the key CAPM terms. Flip each card, mark it “Know it” or “Review again”, and jump to a related scenario question.</p>
+      <p>${BANK.filter(b=>b.mode==="definition").length} cards for the key CAPM terms. Flip, mark what you know, and try a related question.</p>
       <a class="btn go" href="#/cards">Study flashcards <span aria-hidden="true">→</span></a>
     </article>
     <article class="mode wide" id="custom">
@@ -276,11 +276,11 @@ function homeHTML(){
       <details class="taskpick"><summary>Filter by ECO task <span id="taskInfo" class="muted"></span></summary>
         <div class="trow"><button type="button" class="btn sm" data-act="tasksAll">Select all</button><button type="button" class="btn sm" data-act="tasksNone">Clear all</button></div>
         <div class="taskgrid">${tChecks}</div></details>
-      <div class="row">
+      <div class="row startrow">
         <div style="flex:1;min-width:220px"><div class="label" style="margin-bottom:6px">Number of questions <span id="poolInfo" class="muted" style="text-transform:none;letter-spacing:0;font-weight:400"></span></div>
           <p id="noMatch" class="nomatch" role="status" hidden>No questions match these filters. Tick at least one option in each group, or widen the ECO task filter.</p>
           <div class="range"><input type="range" id="oCount" aria-label="Number of questions" min="1" max="${BANK.length}" value="20"><output id="oCountOut">20</output></div></div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" id="startCustom" data-act="custom">Start practice</button></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" id="startCustom" data-act="custom"><span>Start <span id="startN">20</span> questions</span></button></div>
       </div>
     </article>
   </section>
@@ -336,7 +336,7 @@ function pool(){
 function syncCustom(){
   const p=pool(),r=$("#oCount"),o=$("#oCountOut");if(!r)return;
   const max=Math.max(1,p.length);r.max=max;if(+r.value>max)r.value=max;
-  o.textContent=p.length?r.value:0;
+  o.textContent=p.length?r.value:0;const sn=$("#startN");if(sn)sn.textContent=p.length?r.value:0;
   $("#poolInfo").textContent=`(${p.length} matching)`;
   const nm=$("#noMatch");if(nm)nm.hidden=!!p.length;
   const tAll=Object.keys(TASKS).length,tOn=document.querySelectorAll(".taskgrid input:checked").length;
@@ -465,20 +465,20 @@ function resultHTML(){
     <div class="spec"><div><b>${fmt(S.elapsed)}</b><small>time used</small></div><div><b>${n?fmt(S.elapsed/n):"0:00"}</b><small>per question</small></div></div></header>
   <section class="score">
     <div class="big"><div class="label">Score</div><div class="pct" style="color:var(--${pctClass(p)==="mid"?"flag":pctClass(p)})">${p}%</div>
-      <div class="sub">${c} correct · ${n-c-skipped} incorrect · ${skipped} unanswered</div><p class="verdict">${verdict}</p></div>
+      <ul class="sub"><li><b>${c}</b> correct</li><li><b>${n-c-skipped}</b> incorrect</li><li><b>${skipped}</b> unanswered</li></ul><p class="verdict">${verdict}</p>
+      <div class="actions scoreacts">${actionBtns(true)}</div></div>
     <div class="panel"><h2>By domain</h2>${byD}<h2 style="margin-top:6px">By difficulty</h2>${byL}
       <div class="muted" style="font-size:12px">The vertical line on each bar marks 70%, a reference point only: PMI does not publish its passing score. Your real PMI score report also shows results by domain.</div></div>
   </section>
   ${weak.length?`<section class="panel weakpanel"><h2>Study these tasks first</h2>
-    <p class="muted" style="margin:0 0 10px;font-size:14px">Your ${weak.length===1?"weakest ECO task":`${weak.length} weakest ECO tasks`} in this attempt. Practise each with instant feedback.</p>
-    <ul class="weaklist">${weak.map(x=>`<li><div><b class="mono">${x.t}</b> ${esc(TASKS[x.t][1])} <span class="muted">· ${x.c}/${x.n} correct (${Math.round(x.c/x.n*100)}%)</span></div><button class="btn sm primary" data-practask="${x.t}">Practise ${x.t}</button></li>`).join("")}</ul>
+    <p class="muted" style="margin:0 0 10px;font-size:14px">Your ${weak.length===1?"weakest ECO task":`${weak.length} weakest ECO tasks`} in this attempt. Practice each with instant feedback.</p>
+    <ul class="weaklist">${weak.map(x=>`<li><div><b class="mono">${x.t}</b> ${esc(TASKS[x.t][1])} <span class="muted">· ${x.c}/${x.n} correct (${Math.round(x.c/x.n*100)}%)</span></div><button class="btn sm outline" data-practask="${x.t}">Practice ${x.t}</button></li>`).join("")}</ul>
   </section>`:""}
   <section class="panel tpanel">
     <details${tStats.length<=6?" open":""}><summary><h2>By ECO task <span class="muted" style="font-weight:400">(${tStats.length} tasks)</span></h2></summary>
       <div class="tgrid">${byT}</div></details>
   </section>
-  <div class="actions">${actionBtns(true)}${feedbackLink("btn")}</div>
-  ${SITE.feedbackForm?`<p class="muted" style="font-size:14px;margin:8px 0 0">How useful was this practice? <a href="${esc(SITE.feedbackForm)}" target="_blank" rel="noopener">Rate the app from 1 to 5</a>. It takes 30 seconds, and no email is needed.</p>`:""}
+  ${SITE.feedbackForm?`<p class="muted fbres">How useful was this practice? <a href="${esc(SITE.feedbackForm)}" target="_blank" rel="noopener">Rate the app from 1 to 5</a>. It takes 30 seconds, and no email is needed.</p>`:""}
   <h2 class="revhead" id="revHead">Review your answers</h2>
   <div class="tabs" role="group" aria-label="Show questions">
     ${[["all","All",flt.all.length],["wrong","Incorrect",flt.wrong.length],["skip","Unanswered",flt.skip.length],["flag","Flagged",flt.flag.length]].map(([k,t,cnt])=>`<button type="button" class="tab ${reviewFilter===k?"on":""}" data-filter="${k}" aria-pressed="${reviewFilter===k}">${t} · ${cnt}</button>`).join("")}
@@ -549,7 +549,7 @@ document.addEventListener("click",e=>{
   }
 });
 document.addEventListener("change",e=>{if(view==="home"&&e.target.matches("input"))syncCustom()});
-document.addEventListener("input",e=>{if(e.target.id==="oCount")$("#oCountOut").textContent=e.target.value});
+document.addEventListener("input",e=>{if(e.target.id==="oCount"){$("#oCountOut").textContent=e.target.value;const sn=$("#startN");if(sn)sn.textContent=e.target.value}});
 document.addEventListener("keydown",e=>{
   // keep keyboard focus inside an open dialog
   if(e.key==="Tab"&&confirmOpen){const d=$(".dialog");if(d){const f=[...d.querySelectorAll("button,a[href],input")].filter(x=>!x.disabled);if(f.length){const first=f[0],last=f[f.length-1];
@@ -601,7 +601,7 @@ function aboutHTML(){
   const og=BANK.filter(b=>b.org==="cc"&&/Oguz/.test(b.src)).length,fa=BANK.filter(b=>b.org==="cc"&&/Farag/.test(b.src)).length;
   return `<article class="page">
   <header class="mast"><div><div class="label">About</div><h1>About this app</h1></div></header>
-  <p class="lead">CAPM Practice Room is a free place to practise for the PMI Certified Associate in Project Management (CAPM) exam: timed full mock exams, custom practice, and a detailed explanation for every answer. No account, no ads, no fees.</p>
+  <p class="lead">CAPM Practice Room is a free place to practice for the PMI Certified Associate in Project Management (CAPM) exam: timed full mock exams, custom practice, and a detailed explanation for every answer. No account, no ads, no fees.</p>
 
   <h2>Where the questions come from</h2>
   <p>The bank has <b>${n}</b> questions: ${ex} exam-style questions and ${df} definition questions for reviewing key terms. Every question is tagged with its domain and task from the <b>CAPM Exam Content Outline (ECO) 2023</b>, which this app follows. Question bank last updated: <b>${SITE.bankUpdated}</b>.</p>
@@ -683,11 +683,11 @@ function guideHTML(){
   <h2>How to study with this app</h2>
   <ol>
     <li>Learn the key terms with <a href="#/cards">Flashcards</a>.</li>
-    <li>Practise by domain or ECO task with instant feedback, at about <b>72 seconds per question</b>, the real exam pace.</li>
+    <li>Practice by domain or ECO task with instant feedback, at about <b>72 seconds per question</b>, the real exam pace.</li>
     <li>Take a timed 150-question mock exam.</li>
-    <li>Retry your mistakes and practise your weakest tasks from the results page.</li>
+    <li>Retry your mistakes and practice your weakest tasks from the results page.</li>
   </ol>
-  <p><a class="btn primary" href="#/">Start practising</a></p>
+  <p><a class="btn primary" href="#/">Start practicing</a></p>
 
   <p class="note">Sources: ${ext(SITE.pmi,"PMI's CAPM page")}, which links the CAPM ECO 2023 and the PMI Certification Handbook. Fees depend on region and PMI membership: see PMI's site. Rules can change; check PMI before you book. Last checked ${SITE.bankUpdated}.</p>
   </article>`;
@@ -707,7 +707,11 @@ function fcAct(a){
     if(FC.idx<FC.ids.length-1){FC.idx++;FC.flipped=false}}
   else if(a==="shuffle")fcBuild();
   else if(a==="againOnly"){FC.againOnly=!FC.againOnly;fcBuild()}
-  else if(a.startsWith("d")){const d=+a.slice(1);FC.domains=FC.domains.includes(d)?FC.domains.filter(x=>x!==d):[...FC.domains,d].sort();fcBuild()}
+  else if(a==="dall"){FC.domains=DOMAINS.map(d=>d.n);fcBuild()}
+  else if(a.startsWith("d")){const d=+a.slice(1),all=FC.domains.length===DOMAINS.length;
+    /* from "All", a domain chip shows only that domain; after that, chips add or remove domains */
+    FC.domains=all?[d]:FC.domains.includes(d)?FC.domains.filter(x=>x!==d):[...FC.domains,d].sort();
+    if(!FC.domains.length)FC.domains=DOMAINS.map(x=>x.n);fcBuild()}
   else if(a==="related"){view="cardq";render();window.scrollTo(0,0);return}
   else if(a==="back"){view="cards";render();window.scrollTo(0,0);return}
   else if(a==="reset"){cardMarks={};store.set("cards",cardMarks);fcBuild()}
@@ -715,7 +719,8 @@ function fcAct(a){
 }
 function cardsHTML(){
   const all=BANK.filter(b=>b.mode==="definition"),known=all.filter(b=>cardMarks[b.id]==="know").length,again=all.filter(b=>cardMarks[b.id]==="again").length;
-  const chips=DOMAINS.map(d=>`<button class="tab ${FC.domains.includes(d.n)?"on":""}" data-fc="d${d.n}" aria-pressed="${FC.domains.includes(d.n)}">D${d.n} · ${esc(d.short)} · ${all.filter(b=>b.d===d.n).length}</button>`).join("");
+  const allOn=FC.domains.length===DOMAINS.length;
+  const chips=`<button class="tab ${allOn?"on":""}" data-fc="dall" aria-pressed="${allOn}">All domains</button>`+DOMAINS.map(d=>`<button class="tab ${FC.domains.includes(d.n)&&!allOn?"on":""}" data-fc="d${d.n}" aria-pressed="${FC.domains.includes(d.n)&&!allOn}">D${d.n} · ${esc(d.short)} · ${all.filter(b=>b.d===d.n).length}</button>`).join("");
   const head=`<header class="mast"><div><div class="label">Flashcards</div><h1>Learn the key terms</h1></div>
     <div class="spec"><div><b>${known}/${all.length}</b><small>cards known</small></div><div><b>${again}</b><small>to review again</small></div></div></header>
     <div class="fcbar"><div class="tabs" role="group" aria-label="Domains">${chips}</div>

@@ -57,7 +57,7 @@ The main product and technical decisions behind CAPM Practice Room, with the opt
 
 - **Context:** the prototype was in Vietnamese; the exam itself is in English.
 - **Decision:** buttons, labels and domain/task names in English, using the exact ECO 2023 wording; each explanation has an EN/VI switch, English by default.
-- **Why:** candidates practise in the language of the exam and can reach anyone preparing for the CAPM, while Vietnamese learners can still check their understanding.
+- **Why:** candidates practice in the language of the exam and can reach anyone preparing for the CAPM, while Vietnamese learners can still check their understanding.
 
 ## D7 · Host on Vercel, keep the code on GitHub
 
