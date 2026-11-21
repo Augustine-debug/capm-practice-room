@@ -42,7 +42,7 @@ Existing · [#9](https://github.com/Augustine-debug/capm-practice-room/issues/9)
 ### A3. Timer, break and section lock
 Existing · [#10](https://github.com/Augustine-debug/capm-practice-room/issues/10)
 
-*As a candidate, I want the exam timer and the break to work like the real test, so that I practise pacing under the same rules.*
+*As a candidate, I want the exam timer and the break to work like the real test, so that I practice pacing under the same rules.*
 
 - A 180-minute countdown, always visible; the break does not count against the 180 minutes.
 - After question 75 a dialog confirms the end of section 1; once confirmed, questions 1–75 are locked.
@@ -86,9 +86,9 @@ Existing · [#13](https://github.com/Augustine-debug/capm-practice-room/issues/1
 ### B3. Review my mistakes
 Existing · [#14](https://github.com/Augustine-debug/capm-practice-room/issues/14)
 
-*As a learner, I want to practise again only the questions I got wrong, so that I fix my gaps faster.*
+*As a learner, I want to practice again only the questions I got wrong, so that I fix my gaps faster.*
 
-- The home page shows how many questions have been answered wrong across attempts, with a button to practise only those.
+- The home page shows how many questions have been answered wrong across attempts, with a button to practice only those.
 - The results page of every attempt, practice and full mock (after submitting), has Retry mistakes (redo this attempt's wrong questions) and Retake (redo the whole set), as in the prototype.
 - Answering a question correctly in a review removes it from the mistakes list.
 
@@ -134,7 +134,7 @@ Existing; wording changed · [#15](https://github.com/Augustine-debug/capm-pract
 
 - Total score (number correct and %) and time used.
 - % correct by domain, ECO task and difficulty.
-- A 70% reference mark, as in the prototype: each domain bar has a line at 70%; the total comes with a verdict, On track (75% and above), Borderline (65–74%) or Needs work (below 65%). The app states that this is a reference mark, not PMI's passing score (which PMI does not publish), so it never says "Pass" or "Fail". The three weakest tasks are listed with a suggestion to practise them.
+- A 70% reference mark, as in the prototype: each domain bar has a line at 70%; the total comes with a verdict, On track (75% and above), Borderline (65–74%) or Needs work (below 65%). The app states that this is a reference mark, not PMI's passing score (which PMI does not publish), so it never says "Pass" or "Fail". The three weakest tasks are listed with a suggestion to practice them.
 - Each weak task opens a practice set filtered to that task.
 
 ### D2. Review each question
@@ -192,7 +192,7 @@ New · [#6](https://github.com/Augustine-debug/capm-practice-room/issues/6)
 ### E6. CAPM exam guide page
 New; its own page, separate from About · [#7](https://github.com/Augustine-debug/capm-practice-room/issues/7)
 
-*As a first-time candidate, I want a short guide to how the CAPM exam works, so that I know what to expect before I start practising.*
+*As a first-time candidate, I want a short guide to how the CAPM exam works, so that I know what to expect before I start practicing.*
 
 - A separate "Exam guide" page, linked from the navigation and the home page; in English, short, about 5 minutes to read.
 - Exam structure: 150 questions (135 scored, 15 unscored pretest questions mixed in at random), 3 hours, a 10-minute break after question 75 with no return to section 1; the tutorial and survey do not count toward the 3 hours.

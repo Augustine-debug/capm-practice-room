@@ -1,6 +1,6 @@
 # CAPM Practice Room
 
-A free web app for practising for the PMI **CAPM** exam: full 150-question timed mock exams, custom practice by domain and ECO task, review of your mistakes, and a detailed explanation for every answer. No account, no ads.
+A free web app for practicing for the PMI **CAPM** exam: full 150-question timed mock exams, custom practice by domain and ECO task, review of your mistakes, and a detailed explanation for every answer. No account, no ads.
 
 **Live app:** https://capm-practice-room.vercel.app
 
