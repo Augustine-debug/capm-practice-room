@@ -33,8 +33,11 @@ Then open http://localhost:8000 in your browser.
 index.html              page shell
 css/style.css           styles
 js/app.js               app logic
-data/questions.json     question bank (one question per line)
+data/questions.json     question bank (one question per line), the source of truth
+data/questions.csv      the same bank as a table to read (generated, do not edit)
 scripts/validate.js     checks the question bank
+scripts/export-csv.js   writes data/questions.csv from the JSON
+docs/prd.md             product requirements (user stories, acceptance criteria)
 docs/question-schema.md question format, field by field
 docs/user-flow.md       how a candidate moves through the app (diagrams)
 docs/decisions.md       decision log: what was chosen and why
@@ -45,10 +48,13 @@ docs/decisions.md       decision log: what was chosen and why
 After editing `data/questions.json` (format: [docs/question-schema.md](docs/question-schema.md)), run:
 
 ```
+node scripts/export-csv.js
 node scripts/validate.js
 ```
 
-It needs only [Node.js](https://nodejs.org), no packages, and ends with `OK: no errors` or a list of what to fix. The same check runs automatically on every pull request that touches the bank (GitHub Actions).
+The first command refreshes `data/questions.csv`, the readable copy of the bank ([browse it on GitHub](data/questions.csv), or open it in Excel or Google Sheets). The second checks the bank and fails if the CSV is out of date. Both need only [Node.js](https://nodejs.org), no packages; the check ends with `OK: no errors` or a list of what to fix. The same check runs automatically on every pull request that touches the bank (GitHub Actions).
+
+The questions are free to use, share and adapt for non-commercial purposes, with credit, under CC BY-NC-SA 4.0 (see Licences below).
 
 ## Hosting
 
