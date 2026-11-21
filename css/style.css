@@ -360,3 +360,25 @@ a.report:hover{color:var(--accent)}
 .fcbar .tab.on::before{content:"✓ "}
 .startrow{padding-bottom:16px;border-bottom:1px dashed var(--line)}
 @media (max-width:640px){.homespec{display:none}}
+.filters{border-top:1px dashed var(--line);padding-top:10px}
+.filters>summary{cursor:pointer;font-weight:700;color:var(--accent);padding:4px 0}
+.filters[open]>summary{margin-bottom:10px}
+.filters .taskpick{margin-top:12px}
+@media (max-width:640px){
+  .ledger table.hist{min-width:0}
+  .ledger table.hist thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+  .ledger table.hist,.ledger table.hist tbody{display:block}
+  .ledger table.hist tr{display:grid;grid-template-columns:auto auto 1fr auto;align-items:center;gap:6px 12px;padding:12px 14px;border-bottom:1px solid var(--line)}
+  .ledger table.hist tr:last-child{border-bottom:0}
+  .ledger table.hist td{display:block;padding:0;border:0}
+  .ledger .h-date{grid-column:1/4;grid-row:1;font-weight:600}
+  .ledger .h-del{grid-column:4;grid-row:1}
+  .ledger .h-mode{grid-column:1/5;grid-row:2;color:var(--muted)}
+  .ledger .h-mode br{display:none} .ledger .h-mode small::before{content:" · "}
+  .ledger .h-pct{grid-column:1;grid-row:3}
+  .ledger .h-num{grid-column:2;grid-row:3}
+  .ledger .h-time{grid-column:3/5;grid-row:3;color:var(--muted)}
+  .ledger .h-act{grid-column:1/5;grid-row:4;margin-top:4px}
+}
+.h-lbl{display:none}
+@media (max-width:640px){.ledger .h-lbl{display:inline;font-family:var(--f-body)}}

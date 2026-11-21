@@ -70,6 +70,7 @@ let view="home";
 let tick=null;
 let reviewFilter="all";
 let exOpen={};
+let filtersOpen=null; // Custom practice filters: open on wide screens until the user toggles them
 let revShown=20; // how many review items are drawn; "Show more" adds 20 // explanation open/closed per question on the review, kept across re-renders
 /* Where a review starts: a long attempt (more than 20 questions) opens on its incorrect answers
    with explanations folded; a short one shows everything, unfolded. */
@@ -207,6 +208,7 @@ function markScrollRegions(){document.querySelectorAll(".tablewrap").forEach(w=>
     if(!w.hasAttribute("aria-label")){const h=w.querySelector("th");w.setAttribute("aria-label",(h?h.textContent+" table":"Table")+", scroll sideways")}}
   else{w.removeAttribute("tabindex");w.removeAttribute("role");w.removeAttribute("aria-label")}})}
 window.addEventListener("resize",()=>markScrollRegions());
+document.addEventListener("toggle",e=>{if(e.target.id==="filters")filtersOpen=e.target.open},true);
 document.addEventListener("toggle",e=>{const d=e.target;if(!(d instanceof HTMLDetailsElement)||!d.classList.contains("rexp"))return;
   exOpen[d.dataset.exid]=d.open;const l=d.querySelector(".rexlabel");if(l)l.textContent=d.open?"Hide explanation":"Show explanation"},true);
 /* The navigator grid is rebuilt on every render. Keep its scroll position, and scroll it
@@ -269,6 +271,7 @@ function homeHTML(){
           <div class="range"><input type="range" id="oCount" aria-label="Number of questions" min="1" max="${BANK.length}" value="20"><output id="oCountOut">20</output></div></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" id="startCustom" data-act="custom">Start practice</button></div>
       </div>
+      <details class="filters" id="filters"${(filtersOpen??innerWidth>=820)?" open":""}><summary>Filters <span id="filtInfo" class="muted"></span></summary>
       <div class="form">
         <fieldset><legend class="label">Question type</legend>${mChecks}<legend class="label" style="margin-top:10px">Domain</legend>${dChecks}</fieldset>
         <fieldset><legend class="label">Difficulty</legend>${lChecks}
@@ -282,6 +285,7 @@ function homeHTML(){
       <details class="taskpick"><summary>Filter by ECO task <span id="taskInfo" class="muted"></span></summary>
         <div class="trow"><button type="button" class="btn sm" data-act="tasksAll">Select all</button><button type="button" class="btn sm" data-act="tasksNone">Clear all</button></div>
         <div class="taskgrid">${tChecks}</div></details>
+      </details>
     </article>
   </section>
   ${confirmOpen&&confirmKind==="start"?`<div class="overlay" data-act="close"><div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlgT">
@@ -316,13 +320,13 @@ function homeHTML(){
     <p class="muted" style="margin:0 0 10px;font-size:14px">Open a past attempt to review every question with explanations, retake the whole set, or retry only the questions you missed.</p>
     <div class="tablewrap">${hist.length?`<table class="hist"><thead><tr><th>Date</th><th>Mode</th><th>Correct</th><th>Score</th><th>Time</th><th>Review</th><th><span class="sr-only">Delete</span></th></tr></thead><tbody>
       ${hist.map(h=>{const p=Math.round(h.c/h.n*100);const ok=!!h.ids;const wrongN=ok?h.ids.filter(id=>!okAns(h.ans[id],BANK[id-1])).length:0;
-        return `<tr><td>${when(h.t)}</td><td>${modeName[h.mode]}${ok?`<br><small class="muted">${scopeOf(h)}</small>`:""}</td><td class="mono">${h.c}/${h.n}</td><td><span class="pill ${pctClass(p)}">${p}%</span></td><td class="mono">${fmt(h.s)}</td>
-        <td>${ok?`<div class="hact"><button class="btn sm primary" data-review="${h.t}">Review</button><button class="btn sm" data-redo="${h.t}">Retake</button>${wrongN?`<button class="btn sm" data-redowrong="${h.t}">Retry ${wrongN} wrong</button>`:""}</div>`
+        return `<tr><td class="h-date">${when(h.t)}</td><td class="h-mode">${modeName[h.mode]}${ok?`<br><small class="muted">${scopeOf(h)}</small>`:""}</td><td class="mono h-num">${h.c}/${h.n}<span class="h-lbl"> correct</span></td><td class="h-pct"><span class="pill ${pctClass(p)}">${p}%</span></td><td class="mono h-time">${fmt(h.s)}</td>
+        <td class="h-act">${ok?`<div class="hact"><button class="btn sm primary" data-review="${h.t}">Review</button><button class="btn sm" data-redo="${h.t}">Retake</button>${wrongN?`<button class="btn sm" data-redowrong="${h.t}">Retry ${wrongN} wrong</button>`:""}</div>`
           :`<small class="muted">No details saved</small>`}</td>
-        <td><button type="button" class="delhist" data-delhist="${h.t}" aria-label="Delete the attempt from ${when(h.t)}" title="Delete this attempt">${TRASH}</button></td></tr>`}).join("")}
+        <td class="h-del"><button type="button" class="delhist" data-delhist="${h.t}" aria-label="Delete the attempt from ${when(h.t)}" title="Delete this attempt">${TRASH}</button></td></tr>`}).join("")}
     </tbody></table>`:`<div class="empty">No attempts yet. Your results will be saved here, in this browser only.</div>`}</div>
     ${hist.length?`<div class="histfoot"><p class="muted">Your history is saved only in this browser, on this device, and is lost if you clear your browser data.</p><button type="button" class="btn sm" data-act="clearHist">Clear history</button></div>`:""}
-    <p class="note">Based on the PMI Certification Handbook (June 2026) and the CAPM ECO 2023: the exam has 150 questions, 135 scored and 15 unscored pretest questions mixed in at random; 3 hours, with a 10-minute break after question 75. The passing score is criteria-based and not published; this app uses 70% as a reference mark. The real exam also has drag-and-drop/matching and hot spot questions; this app uses multiple choice and multiple response ("Select two/three"). The bank has ${BANK.length} questions (${BANK.filter(b=>b.mode==="exam").length} exam, ${BANK.filter(b=>b.mode==="definition").length} definition review), mostly original, with ${BANK.filter(b=>b.org!=="own").length} adapted from Creative Commons sources and credited on each question. Every question is tagged with its ECO task; terms follow PMBOK 7, with PMBOK 8 notes where things changed. Your progress and history are saved in this browser only.</p>
+    <p class="note">How this app compares with the real exam, and where the questions come from: <a href="#/guide">Exam guide</a> · <a href="#/about">About</a>.</p>
   </section>`;
 }
 
@@ -338,6 +342,8 @@ function syncCustom(){
   const max=Math.max(1,p.length);r.max=max;if(+r.value>max)r.value=max;
   o.textContent=p.length?r.value:0;
   $("#poolInfo").textContent=`(${p.length} matching)`;
+  const off=document.querySelectorAll("#custom .form input[data-d]:not(:checked),#custom .form input[data-l]:not(:checked),#custom .taskgrid input:not(:checked)").length+(+!$("#cm_exam")?.checked)+(+!!$("#cm_definition")?.checked);
+  const fi=$("#filtInfo");if(fi)fi.textContent=off?`· ${p.length} questions match`:"· all exam questions, every domain and level";
   const nm=$("#noMatch");if(nm)nm.hidden=!!p.length;
   const tAll=Object.keys(TASKS).length,tOn=document.querySelectorAll(".taskgrid input:checked").length;
   const ti=$("#taskInfo");if(ti)ti.textContent=`· ${tOn===tAll?"all":tOn}/${tAll} tasks`;
