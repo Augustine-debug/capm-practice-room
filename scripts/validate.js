@@ -124,6 +124,13 @@ for (const d of [1, 2, 3, 4]) {
   if (n < MOCK_PER_DOMAIN[d]) errors.push(`domain ${d}: only ${n} exam questions, a full mock needs ${MOCK_PER_DOMAIN[d]}`);
 }
 
+// the readable copy (data/questions.csv) must match the JSON; only when checking the default file
+if (!process.argv[2]) {
+  const { buildCsv, CSV_FILE } = require("./export-csv.js");
+  const current = fs.existsSync(CSV_FILE) ? fs.readFileSync(CSV_FILE, "utf8") : "";
+  if (current !== buildCsv(bank)) errors.push("data/questions.csv is out of date: run  node scripts/export-csv.js  and commit it");
+}
+
 // report
 const count = (f) => bank.filter(f).length;
 console.log(`Questions: ${bank.length} (${count((q) => q.mode === "exam")} exam, ${count((q) => q.mode === "definition")} definition)`);

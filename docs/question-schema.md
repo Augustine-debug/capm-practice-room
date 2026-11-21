@@ -1,6 +1,6 @@
 # Question bank format
 
-All questions live in `data/questions.json`: one JSON array, one question per line, so a change to one question shows up as one changed line in a pull request.
+All questions live in `data/questions.json`: one JSON array, one question per line, so a change to one question shows up as one changed line in a pull request. A readable table of the same data, `data/questions.csv`, is generated from it by `node scripts/export-csv.js`; never edit the CSV by hand.
 
 Run `node scripts/validate.js` after every edit. It checks every rule below.
 

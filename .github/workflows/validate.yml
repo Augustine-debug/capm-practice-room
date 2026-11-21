@@ -2,10 +2,10 @@ name: Validate question bank
 
 on:
   pull_request:
-    paths: ["data/questions.json", "scripts/validate.js"]
+    paths: ["data/questions.json", "data/questions.csv", "scripts/validate.js", "scripts/export-csv.js"]
   push:
     branches: [main]
-    paths: ["data/questions.json", "scripts/validate.js"]
+    paths: ["data/questions.json", "data/questions.csv", "scripts/validate.js", "scripts/export-csv.js"]
 
 jobs:
   validate:
