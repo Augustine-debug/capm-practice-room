@@ -8,6 +8,7 @@ A free web app for practising for the PMI **CAPM** exam: full 150-question timed
 
 - **Full mock exam**: 150 questions drawn by the CAPM ECO 2023 domain weights (54 / 26 / 30 / 40), 3-hour timer, optional 10-minute break after question 75 with no return to section 1, like the real test.
 - **Custom practice**: pick domains, ECO tasks, difficulty and number of questions; instant feedback and an optional 72-second-per-question timer.
+- **Flashcards**: 69 cards for the key CAPM terms. Flip, mark “Know it” or “Review again”, filter by domain, and jump to a related scenario question.
 - **Review mistakes**: retry the questions you got wrong, across all attempts or from one attempt.
 - **Results by domain, task and difficulty**, with a 70% reference mark (PMI does not publish its passing score).
 - **Explanations** for the correct option and for every wrong option, in English with a one-tap switch to Vietnamese.
