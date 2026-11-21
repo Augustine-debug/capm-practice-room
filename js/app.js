@@ -91,11 +91,24 @@ function detailHTML(b,perm){
     ${tk?`<p class="ecoline"><span class="wl eco">ECO ${b.t}</span> ${esc(tk[0])}</p>`:""}</details>`;
 }
 
+/* ---------- visit counts (E5): GoatCounter, no cookies, no personal data ----------
+   Page views: /, /guide, /about, /cards. Events: which modes are started and finished.
+   Counts made before the script has loaded are queued and sent on window load.
+   GoatCounter ignores localhost, so local testing is not counted. */
+const gcQueue=[];
+function gc(o){try{if(window.goatcounter&&window.goatcounter.count)window.goatcounter.count(o);else gcQueue.push(o)}catch(e){}}
+window.addEventListener("load",()=>{while(gcQueue.length&&window.goatcounter&&window.goatcounter.count)window.goatcounter.count(gcQueue.shift())});
+const PAGE_TITLES={home:"Practice",guide:"Exam guide",about:"About",cards:"Flashcards"};
+let lastCounted="";
+function countPage(){if(!PAGE_TITLES[view]||lastCounted===view)return;lastCounted=view;gc({path:view==="home"?"/":"/"+view,title:PAGE_TITLES[view]})}
+function countEvent(name){gc({path:name,title:name,event:true})}
+
 /* ---------- session ---------- */
 function newSession(mode,ids,opt){
   const perm={};ids.forEach(id=>{const r=BANK[id-1].o.map((_,i)=>i);perm[id]=opt.shuffleOpts?shuffle(r):r});
   S={mode,ids,perm,ans:{},flag:{},idx:0,elapsed:0,limit:opt.limit||0,instant:!!opt.instant,started:Date.now(),done:false};
   if(mode==="full"&&ids.length>SEC){S.phase="s1";S.brk=0}
+  countEvent("start-"+mode);lastCounted="";
   save();go("exam");
 }
 function save(){if(!S||S.fromHistory)return;if(!S.done)store.set("session",S);else store.del("session")}  // no active attempt: leave any saved one alone
@@ -127,7 +140,7 @@ function startTick(){tick=setInterval(()=>{if(!S||S.done)return;
 function stopTick(){if(tick){clearInterval(tick);tick=null}}
 
 function submit(){
-  S.done=true;stopTick();
+  S.done=true;stopTick();countEvent("finish-"+S.mode);
   const total=S.ids.length,correct=S.ids.filter(isRight).length;
   // wrong bank
   const wrong=new Set(store.get("wrong",[]));
@@ -174,6 +187,7 @@ function render(){
   else app.innerHTML=resultHTML();
   if(view==="home")syncCustom();
   if(view==="exam")keepNavigatorInView(oldGrid?gridTop:null);
+  countPage();
 }
 /* The navigator grid is rebuilt on every render. Keep its scroll position, and scroll it
    (not the page) just enough to show the current question. */
@@ -545,6 +559,7 @@ function aboutHTML(){
 
   <h2>Your data</h2>
   <p>There is no account. Your attempts, mistakes and settings are saved only in this browser, on this device. Clearing your browser data deletes them.</p>
+  <p>To see how many people use the app, page visits are counted with ${ext("https://www.goatcounter.com","GoatCounter")}. It uses no cookies and does not collect personal data; it counts which pages are opened and which modes are started and finished, never your answers or scores.</p>
 
   <h2>Who made this</h2>
   <p>Built by <b>${esc(SITE.maker)}</b> while preparing for the CAPM, as a free resource for other candidates. ${ext(SITE.github,"GitHub")}${SITE.linkedin?` · ${ext(SITE.linkedin,"LinkedIn")}`:""}</p>
