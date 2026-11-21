@@ -90,3 +90,11 @@ The main product and technical decisions behind CAPM Practice Room, with the opt
 - **Context:** PMI does not publish a passing score for the CAPM.
 - **Decision:** results show a 70% line labelled as a reference mark, and the app says the real passing score is not published.
 - **Why:** candidates get a target without the app claiming to know PMI's cut score.
+
+## D13 · No separate landing page; the home page is the practice page
+
+- **Context:** should visitors land on a marketing-style home page and then go to practice, flashcards, the guide and About?
+- **Options:** a landing page in front of the app · the app's modes on the home page, with a short introduction on top.
+- **Decision:** keep the modes on the home page (renamed "Home" in the navigation), and add two light touches: a trust line under the title (free, no sign-up, number of questions, ECO 2023) and a dismissible "New here?" tip with a suggested order, shown only to visitors with no history.
+- **Why:** most visitors arrive from a shared link and already know what the app is for; one more page is one more click before the first question, and a free tool loses people at every extra step. A landing page earns its place with SEO, several audiences or something to sell, none of which applies yet.
+- **Revisit when:** GoatCounter shows many visits to `/` but few `start-…` events after launch, which would mean visitors do not see where to begin.

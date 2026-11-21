@@ -2,13 +2,13 @@
 
 How a candidate moves through CAPM Practice Room. GitHub draws the Mermaid diagrams below; in other viewers, paste them into [mermaid.live](https://mermaid.live).
 
-Pages are reached with `#/` links: Practice (`#/`), Exam guide (`#/guide`), Flashcards (`#/cards`) and About (`#/about`). The exam and results screens have no link of their own, so a reload during an attempt returns to Practice, where the attempt can be resumed.
+Pages are reached with `#/` links: Home (`#/`), Exam guide (`#/guide`), Flashcards (`#/cards`) and About (`#/about`). The exam and results screens have no link of their own, so a reload during an attempt returns to Home, where the attempt can be resumed.
 
 ## 1. Overview
 
 ```mermaid
 flowchart LR
-  Visit([Open the site]) --> Home[Practice home]
+  Visit([Open the site]) --> Home[Home: modes,<br/>start tip for new visitors]
   Home <--> Guide[Exam guide]
   Home <--> About[About]
   Home <--> Cards[Flashcards]
@@ -36,7 +36,7 @@ The mock follows the real exam: questions drawn by ECO weight (54 / 26 / 30 / 40
 ```mermaid
 flowchart TD
   Start[Start dialog:<br/>rules, 180 minutes] -->|Start exam| S1[Section 1<br/>questions 1–75]
-  Start -->|Not now| Home([Practice home])
+  Start -->|Not now| Home([Home])
 
   S1 -->|Answer, flag, move,<br/>jump with the navigator| S1
   S1 -->|Pause| Saved[(Saved in this browser)]
@@ -75,7 +75,7 @@ flowchart TD
   Weak -->|Practise task| Practice[Up to 20 exam questions<br/>on that task]
   R --> Review[Review by tab:<br/>All · Incorrect · Unanswered · Flagged]
   R -->|Redo the wrong ones| RetryThis[Retry this attempt's mistakes]
-  R -->|Home| Home([Practice home])
+  R -->|Home| Home([Home])
   Home --> Hist[History: last 30 attempts]
   Hist -->|Review| R
 ```

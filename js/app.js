@@ -98,7 +98,7 @@ function detailHTML(b,perm){
 const gcQueue=[];
 function gc(o){try{if(window.goatcounter&&window.goatcounter.count)window.goatcounter.count(o);else gcQueue.push(o)}catch(e){}}
 window.addEventListener("load",()=>{while(gcQueue.length&&window.goatcounter&&window.goatcounter.count)window.goatcounter.count(gcQueue.shift())});
-const PAGE_TITLES={home:"Practice",guide:"Exam guide",about:"About",cards:"Flashcards"};
+const PAGE_TITLES={home:"Home",guide:"Exam guide",about:"About",cards:"Flashcards"};
 let lastCounted="";
 function countPage(){if(!PAGE_TITLES[view]||lastCounted===view)return;lastCounted=view;gc({path:view==="home"?"/":"/"+view,title:PAGE_TITLES[view]})}
 function countEvent(name){gc({path:name,title:name,event:true})}
@@ -219,11 +219,16 @@ function homeHTML(){
   const lChecks=[1,2,3].map(l=>`<label class="chk"><input type="checkbox" id="cl${l}" data-l="${l}" checked><span>${LEVELS[l]}</span><span class="n">${BANK.filter(b=>b.lv===l).length}</span></label>`).join("");
   return `
   <header class="mast">
-    <div><div class="label">CAPM · Exam Content Outline 2023</div><h1>Practise for the <span>CAPM</span> exam</h1></div>
+    <div><div class="label">CAPM · Exam Content Outline 2023</div><h1>Practise for the <span>CAPM</span> exam</h1>
+      <p class="trust"><span>Free</span><span>No sign-up</span><span>${BANK.length} questions with full explanations</span><span>Follows the CAPM ECO 2023</span></p></div>
     <div class="spec"><div><b>150</b><small>questions</small></div><div><b>180′</b><small>minutes</small></div><div><b>72″</b><small>per question</small></div><div><b>135</b><small>scored</small></div><div><b>10′</b><small>break after Q75</small></div></div>
   </header>
   ${saved&&!saved.done?`<div class="resume"><div><b>You have an attempt in progress.</b> <span class="muted">${modeName[saved.mode]} · ${Object.keys(saved.ans).length}/${saved.ids.length} answered · ${fmt(saved.elapsed)}</span></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-act="discard">Discard</button><button class="btn primary" data-act="resume">Resume</button></div></div>`:""}
+  ${!hist.length&&!(saved&&!saved.done)&&!store.get("hintClosed",false)?`<aside class="starthint" aria-label="Where to start">
+    <div><b>New here? A good order:</b>
+      <ol><li><a href="#/cards">Flashcards</a> for the key terms</li><li><button type="button" class="linkbtn" data-act="toCustom">A 20-question practice</button> with instant feedback</li><li><button type="button" class="linkbtn" data-act="full">The 150-question mock</button></li><li>Review your mistakes</li></ol></div>
+    <button type="button" class="hintx" data-act="hintClose" aria-label="Hide this tip">×</button></aside>`:""}
   <section class="modes">
     <article class="mode">
       <div class="label">Mode 1</div>
@@ -243,7 +248,7 @@ function homeHTML(){
       <p>${BANK.filter(b=>b.mode==="definition").length} cards for the key CAPM terms. Flip each card, mark it “Know it” or “Review again”, and jump to a related scenario question.</p>
       <a class="btn go" href="#/cards">Study flashcards <span aria-hidden="true">→</span></a>
     </article>
-    <article class="mode wide">
+    <article class="mode wide" id="custom">
       <div class="label">Mode 4</div>
       <h2>Custom practice</h2>
       <div class="form">
@@ -498,6 +503,8 @@ document.addEventListener("click",e=>{
     case "submit":submit();break;
     case "pause":save();S=null;go("home");break;
     case "home":S=null;go("home");break;
+    case "hintClose":store.set("hintClosed",true);render();break;
+    case "toCustom":{const c=$("#custom");if(c){c.scrollIntoView({behavior:"smooth",block:"start"});setTimeout(()=>$("#startCustom")?.focus({preventScroll:true}),400)}break}
     case "theme":setTheme(t.dataset.themeV,t.closest(".bar")?"bar":t.closest(".topnav")?"topnav":t.closest(".mast")?"mast":"");break;
     case "redoThis":redo(S);break;
     case "history":S=null;go("home");document.querySelector(".ledger")?.scrollIntoView();break;
@@ -539,7 +546,7 @@ const themeBtn=(cls="")=>`<div class="themesw ${cls}" role="group" aria-label="T
 function navHTML(cur){
   const a=(href,k,t)=>`<a href="${href}"${cur===k?' aria-current="page"':""}>${t}</a>`;
   return `<nav class="topnav" aria-label="Main"><a class="brand" href="#/">CAPM <span>Practice Room</span></a>
-    <div class="links">${a("#/","home","Practice")}${a("#/cards","cards","Flashcards")}${a("#/guide","guide","Exam guide")}${a("#/about","about","About")}</div>${themeBtn()}</nav>`;
+    <div class="links">${a("#/","home","Home")}${a("#/cards","cards","Flashcards")}${a("#/guide","guide","Exam guide")}${a("#/about","about","About")}</div>${themeBtn()}</nav>`;
 }
 function footHTML(){
   return `<footer class="foot">
