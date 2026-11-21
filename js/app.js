@@ -36,6 +36,18 @@ const fmt=s=>{s=Math.max(0,Math.round(s));const h=Math.floor(s/3600),m=Math.floo
 const pctClass=p=>p>=75?"ok":p>=65?"mid":"bad";
 const modeName={full:"Full mock exam",custom:"Custom practice",retry:"Review mistakes"};
 
+
+/* ---------- site info (About page, footer) ---------- */
+const SITE={
+  repo:"https://github.com/Augustine-debug/capm-practice-room",
+  kofi:"https://ko-fi.com/duyduy3396",
+  maker:"Duy Nguyễn",
+  github:"https://github.com/Augustine-debug",
+  linkedin:"",            // paste the LinkedIn profile URL here; the link shows only when this is set
+  bankUpdated:"21 November 2026",
+  pmi:"https://www.pmi.org/capm"
+};
+
 let S=null;          // active session
 let view="home";
 let tick=null;
@@ -78,6 +90,7 @@ function endSection(){S.phase="break";S.brk=0;confirmOpen=false;save();render()}
 function startSection2(){S.phase="s2";S.idx=SEC;save();render();window.scrollTo(0,0)}
 
 function go(v){view=v;confirmOpen=false;stopTick();
+  if(v==="home"&&location.hash&&location.hash!=="#/")history.replaceState(null,"","#/");
   if(v==="exam")startTick();
   render();window.scrollTo(0,0)}
 function startTick(){tick=setInterval(()=>{if(!S||S.done)return;
@@ -129,7 +142,9 @@ function scopeOf(h){
 /* ---------- views ---------- */
 function render(){
   const app=$("#app");
-  if(view==="home")app.innerHTML=homeHTML();
+  if(view==="home")app.innerHTML=navHTML("home")+homeHTML()+footHTML();
+  else if(view==="about")app.innerHTML=navHTML("about")+aboutHTML()+footHTML();
+  else if(view==="guide")app.innerHTML=navHTML("guide")+guideHTML()+footHTML();
   else if(view==="exam")app.innerHTML=examHTML();
   else app.innerHTML=resultHTML();
   if(view==="home")syncCustom();
@@ -402,6 +417,124 @@ document.addEventListener("keydown",e=>{
 document.addEventListener("toggle",e=>{if(e.target.matches&&e.target.matches("details.more")){detailOpen=e.target.open;store.set("detailOpen",detailOpen)}},true);
 document.addEventListener("visibilitychange",()=>{if(document.hidden)save()});
 
+
+/* ---------- site navigation, footer and info pages ---------- */
+function navHTML(cur){
+  const a=(href,k,t)=>`<a href="${href}"${cur===k?' aria-current="page"':""}>${t}</a>`;
+  return `<nav class="topnav" aria-label="Main"><a class="brand" href="#/">CAPM <span>Practice Room</span></a>
+    <div class="links">${a("#/","home","Practice")}${a("#/guide","guide","Exam guide")}${a("#/about","about","About")}</div></nav>`;
+}
+function footHTML(){
+  return `<footer class="foot">
+    <div><a class="btn sm" href="${SITE.kofi}" target="_blank" rel="noopener">☕ Support this project</a></div>
+    <div class="links"><a href="#/guide">Exam guide</a><a href="#/about">About</a><a href="${SITE.repo}" target="_blank" rel="noopener">GitHub</a></div>
+    <p class="muted">CAPM®, PMP®, PMBOK® and PMI® are registered marks of the Project Management Institute, Inc. This free app is not affiliated with or endorsed by PMI and contains no real exam questions.</p>
+  </footer>`;
+}
+const ext=(href,t)=>`<a href="${href}" target="_blank" rel="noopener">${t}</a>`;
+function aboutHTML(){
+  const n=BANK.length,ex=BANK.filter(b=>b.mode==="exam").length,df=n-ex;
+  const own=BANK.filter(b=>b.org==="own").length;
+  const og=BANK.filter(b=>b.org==="cc"&&/Oguz/.test(b.src)).length,fa=BANK.filter(b=>b.org==="cc"&&/Farag/.test(b.src)).length;
+  return `<article class="page">
+  <header class="mast"><div><div class="label">About</div><h1>About this app</h1></div></header>
+  <p class="lead">CAPM Practice Room is a free place to practise for the PMI Certified Associate in Project Management (CAPM) exam: timed full mock exams, custom practice, and a detailed explanation for every answer. No account, no ads, no fees.</p>
+
+  <h2>Where the questions come from</h2>
+  <p>The bank has <b>${n}</b> questions: ${ex} exam-style questions and ${df} definition questions for reviewing key terms. Every question is tagged with its domain and task from the <b>CAPM Exam Content Outline (ECO) 2023</b>, which this app follows. Question bank last updated: <b>${SITE.bankUpdated}</b>.</p>
+  <div class="tablewrap"><table class="hist">
+    <thead><tr><th>Source</th><th>Licence</th><th>Questions</th></tr></thead>
+    <tbody>
+      <tr><td>Written for CAPM Practice Room</td><td>CC BY-NC-SA 4.0</td><td class="mono">${own}</td></tr>
+      <tr><td>Adapted from Abdullah Oguz, ${ext("https://pressbooks.ulib.csuohio.edu/projectmanagement2ndedition/","<i>Project Management, 2nd Edition</i>")}, Cleveland State University</td><td>${ext("https://creativecommons.org/licenses/by-nc/4.0/","CC BY-NC 4.0")}</td><td class="mono">${og}</td></tr>
+      <tr><td>Adapted from Adam Farag (ed.), ${ext("https://ecampusontario.pressbooks.pub/essentialsofprojectmanagement/","<i>Essentials of Project Management</i>")}, Fanshawe College</td><td>${ext("https://creativecommons.org/licenses/by-nc-sa/4.0/","CC BY-NC-SA 4.0")}</td><td class="mono">${fa}</td></tr>
+    </tbody></table></div>
+  <p class="muted">Adapted questions were reworded as CAPM-style questions, given new explanations and translated into Vietnamese. Each one names its source under its explanation. The bank contains no real or leaked PMI exam questions and nothing copied from commercial prep providers.</p>
+
+  <h2>Licences</h2>
+  <ul>
+    <li><b>Code</b>: MIT licence (${ext(SITE.repo+"/blob/main/LICENSE","LICENSE")}).</li>
+    <li><b>Questions and explanations</b>: ${ext("https://creativecommons.org/licenses/by-nc-sa/4.0/","CC BY-NC-SA 4.0")}. You may share and adapt them for non-commercial use with credit, under the same licence (${ext(SITE.repo+"/blob/main/CONTENT-LICENSE.md","details")}).</li>
+  </ul>
+
+  <h2>Disclaimer</h2>
+  <p>CAPM®, PMP®, PMBOK® and PMI® are registered marks of the Project Management Institute, Inc. CAPM Practice Room is an independent, non-commercial project and is not affiliated with, endorsed by or sponsored by PMI. Exam facts follow the CAPM ECO 2023 and the PMI Certification Handbook; check ${ext(SITE.pmi,"PMI's CAPM page")} for the latest rules.</p>
+
+  <h2>Your data</h2>
+  <p>There is no account. Your attempts, mistakes and settings are saved only in this browser, on this device. Clearing your browser data deletes them.</p>
+
+  <h2>Who made this</h2>
+  <p>Built by <b>${esc(SITE.maker)}</b> while preparing for the CAPM, as a free resource for other candidates. ${ext(SITE.github,"GitHub")}${SITE.linkedin?` · ${ext(SITE.linkedin,"LinkedIn")}`:""}</p>
+  <p>Found a wrong answer or a bug? ${ext(SITE.repo+"/issues","Report it on GitHub")}. If the app helped you, you can ${ext(SITE.kofi,"buy me a coffee on Ko-fi")}.</p>
+  </article>`;
+}
+function guideHTML(){
+  const dRows=DOMAINS.map(d=>`<tr><td><b>Domain ${d.n}</b> · ${esc(d.name)}</td><td class="mono">${d.w}%</td><td class="mono">${MOCK_N[d.n]}</td></tr>`).join("");
+  const tasks=DOMAINS.map(d=>`<li><b>Domain ${d.n}</b><ul>${Object.keys(TASKS).filter(t=>t.startsWith(d.n+".")).map(t=>`<li><span class="mono">${t}</span> ${esc(TASKS[t][0])}</li>`).join("")}</ul></li>`).join("");
+  return `<article class="page">
+  <header class="mast"><div><div class="label">Exam guide</div><h1>How the CAPM exam works</h1></div></header>
+  <p class="lead">A five-minute overview of the Certified Associate in Project Management (CAPM) exam, based on the CAPM Exam Content Outline (ECO) 2023 and the PMI Certification Handbook (June 2026 edition).</p>
+
+  <h2>Exam structure</h2>
+  <ul>
+    <li><b>150 questions</b>: 135 scored and 15 unscored pretest questions, mixed in at random. You cannot tell which ones are pretest.</li>
+    <li><b>3 hours</b>. An optional tutorial before and a survey after do not count toward the 3 hours.</li>
+    <li><b>A 10-minute break</b> appears after question 75, once you have reviewed your answers. After the break starts you <b>cannot return</b> to questions 1–75.</li>
+  </ul>
+
+  <h2>Question types</h2>
+  <p>Multiple choice (one answer), multiple response ("Select two"), drag-and-drop and matching, hot spot (click an area of an image), and short animation or comic-strip scenarios followed by a question. Online-proctored exams use comic strips only. <span class="muted">This app currently has multiple-choice and multiple-response questions.</span></p>
+
+  <h2>What is tested</h2>
+  <p>Four domains. Predictive, agile and business-analysis ideas appear across all of them, not only in their own domain.</p>
+  <div class="tablewrap"><table class="hist">
+    <thead><tr><th>Domain</th><th>Weight</th><th>≈ Questions in 150</th></tr></thead>
+    <tbody>${dRows}</tbody></table></div>
+  <details class="taskpick"><summary>The 19 tasks of the ECO 2023</summary><ul class="tasks">${tasks}</ul></details>
+
+  <h2>Who can take it</h2>
+  <ul>
+    <li><b>Eligibility</b>: a secondary diploma (high school, GED or global equivalent) plus <b>23 hours</b> of project management education, completed before the exam.</li>
+    <li><b>Where</b>: at a test centre or online with a remote proctor.</li>
+    <li><b>Attempts</b>: up to 3 within your 1-year eligibility period. After 3 unsuccessful attempts you wait 1 year before reapplying.</li>
+    <li><b>Keeping it</b>: renew every 3 years by earning 15 professional development units (PDUs).</li>
+  </ul>
+
+  <h2>Exam day</h2>
+  <ul>
+    <li>Arrive 30 minutes early with a valid photo ID.</li>
+    <li>A calculator is built into the exam software.</li>
+    <li>The exam is offered in English and several translated versions (not Vietnamese); translated versions let you view the English text alongside.</li>
+  </ul>
+
+  <h2>Scoring</h2>
+  <p>PMI does not publish a passing score. The exam is criteria-based: your answers are compared with the standard expected of a qualified associate, using psychometric analysis. Your score report shows pass or fail and how you did in each domain. <b>This app uses 70% as a reference mark</b> so you can track progress, not as PMI's cut-off.</p>
+
+  <h2>PMBOK 7 or PMBOK 8?</h2>
+  <p>The CAPM still follows the <b>ECO 2023</b>, and its reference list uses PMBOK Guide 7th Edition terms. Do not confuse it with the PMP: the PMP exam changed on 9 July 2026 and PMBOK Guide 8th Edition is out. If you read newer material, the main PMBOK 8 changes are: process groups become "focus areas", 12 principles become 6, and there are 7 new performance domains (governance, scope, schedule, finance, stakeholders, resources, risk). Questions in this app flag PMBOK 8 differences where they matter.</p>
+
+  <h2>What to read</h2>
+  <p>References listed in the ECO: <i>PMBOK Guide</i> 7th Edition, <i>Process Groups: A Practice Guide</i>, <i>The PMI Guide to Business Analysis</i>, <i>Business Analysis for Practitioners</i> and the <i>Agile Practice Guide</i>. Quick reads: ${ext("https://scrumguides.org/scrum-guide.html","the Scrum Guide")}, ${ext("https://agilemanifesto.org/","the Agile Manifesto")} and ${ext("https://www.pmi.org/about/ethics/code","PMI's Code of Ethics")}.</p>
+
+  <h2>How to study with this app</h2>
+  <ol>
+    <li>Review key terms with the definition questions in Custom practice.</li>
+    <li>Practise by domain or ECO task with instant feedback, at about <b>72 seconds per question</b>, the real exam pace.</li>
+    <li>Take a timed 150-question mock exam.</li>
+    <li>Retry your mistakes and practise your weakest tasks from the results page.</li>
+  </ol>
+  <p><a class="btn primary" href="#/">Start practising</a></p>
+
+  <p class="note">Sources: ${ext(SITE.pmi,"PMI's CAPM page")}, which links the CAPM ECO 2023 and the PMI Certification Handbook. Fees depend on region and PMI membership: see PMI's site. Rules can change; check PMI before you book. Last checked ${SITE.bankUpdated}.</p>
+  </article>`;
+}
+function routeFromHash(){
+  const h=location.hash.replace(/^#\/?/,"");
+  if(view==="exam"||view==="result")return;
+  view=h==="about"?"about":h==="guide"?"guide":"home";
+}
+window.addEventListener("hashchange",()=>{if(view==="exam"||view==="result")return;routeFromHash();render();window.scrollTo(0,0)});
+
 /* ---------- start: load the question bank, then draw ---------- */
 async function loadBank(){
   const app=$("#app");
@@ -416,7 +549,7 @@ async function loadBank(){
     data.forEach(x=>{const ex=x.explanation;BANK[x.id-1]={id:x.id,d:x.domain,lv:x.difficulty,q:x.question,o:x.options,a:x.answer,
       e:ex.short.vi,w:ex.whyCorrect.vi,x:ex.whyWrong.vi,ex,t:x.task,ctx:x.context||"",n8:x.pmbok8Note||"",
       src:x.source.text,org:x.source.type,mode:x.mode,rel:x.related||0}});
-    render();
+    routeFromHash();render();
   }catch(err){
     app.innerHTML=`<div class="empty"><b>Could not load the questions.</b><br>If you opened index.html straight from your disk, run a local web server instead (see the README). <small class="muted">${esc(err.message)}</small></div>`;
   }
