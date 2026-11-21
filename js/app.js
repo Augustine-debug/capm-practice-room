@@ -167,6 +167,7 @@ function homeHTML(){
   const hist=store.get("history",[]);
   const dChecks=DOMAINS.map(d=>`<label class="chk"><input type="checkbox" id="cd${d.n}" data-d="${d.n}" checked><span><b>Domain ${d.n}</b> · ${d.w}%<br><small class="muted">${esc(d.name)}</small></span><span class="n">${BANK.filter(b=>b.d===d.n).length}</span></label>`).join("");
   const tChecks=Object.keys(TASKS).map(t=>`<label class="chk"><input type="checkbox" id="ct${t.replace(".","_")}" data-t="${t}" checked><span><b class="mono">${t}</b> ${esc(TASKS[t][1])}<br><small class="muted">${esc(TASKS[t][0])}</small></span><span class="n">${BANK.filter(b=>b.t===t).length}</span></label>`).join("");
+  const mChecks=[["exam","Exam-style questions",true],["definition","Definition review",false]].map(([m,t,on])=>`<label class="chk"><input type="checkbox" id="cm_${m}" data-m="${m}"${on?" checked":""}><span>${t}</span><span class="n">${BANK.filter(b=>b.mode===m).length}</span></label>`).join("");
   const lChecks=[1,2,3].map(l=>`<label class="chk"><input type="checkbox" id="cl${l}" data-l="${l}" checked><span>${LEVELS[l]}</span><span class="n">${BANK.filter(b=>b.lv===l).length}</span></label>`).join("");
   return `
   <header class="mast">
@@ -192,7 +193,7 @@ function homeHTML(){
       <div class="label">Mode 3</div>
       <h2>Custom practice</h2>
       <div class="form">
-        <fieldset><legend class="label">Domain</legend>${dChecks}</fieldset>
+        <fieldset><legend class="label">Question type</legend>${mChecks}<legend class="label" style="margin-top:10px">Domain</legend>${dChecks}</fieldset>
         <fieldset><legend class="label">Difficulty</legend>${lChecks}
           <legend class="label" style="margin-top:10px">Options</legend>
           <label class="chk"><input type="checkbox" id="oShuffle" checked><span>Shuffle questions</span></label>
@@ -206,6 +207,7 @@ function homeHTML(){
         <div class="taskgrid">${tChecks}</div></details>
       <div class="row">
         <div style="flex:1;min-width:220px"><div class="label" style="margin-bottom:6px">Number of questions <span id="poolInfo" class="muted" style="text-transform:none;letter-spacing:0;font-weight:400"></span></div>
+          <p id="noMatch" class="nomatch" role="status" hidden>No questions match these filters. Tick at least one option in each group, or widen the ECO task filter.</p>
           <div class="range"><input type="range" id="oCount" min="1" max="${BANK.length}" value="20"><output id="oCountOut">20</output></div></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" id="startCustom" data-act="custom">Start practice</button></div>
       </div>
@@ -244,13 +246,15 @@ function pool(){
   const ds=DOMAINS.filter(d=>$("#cd"+d.n)?.checked).map(d=>d.n);
   const ls=[1,2,3].filter(l=>$("#cl"+l)?.checked);
   const ts=new Set(Object.keys(TASKS).filter(t=>{const el=document.getElementById("ct"+t.replace(".","_"));return !el||el.checked}));
-  return BANK.filter(b=>ds.includes(b.d)&&ls.includes(b.lv)&&ts.has(b.t)).map(b=>b.id);
+  const ms=["exam","definition"].filter(m=>$("#cm_"+m)?.checked);
+  return BANK.filter(b=>ms.includes(b.mode)&&ds.includes(b.d)&&ls.includes(b.lv)&&ts.has(b.t)).map(b=>b.id);
 }
 function syncCustom(){
   const p=pool(),r=$("#oCount"),o=$("#oCountOut");if(!r)return;
   const max=Math.max(1,p.length);r.max=max;if(+r.value>max)r.value=max;
   o.textContent=p.length?r.value:0;
   $("#poolInfo").textContent=`(${p.length} matching)`;
+  const nm=$("#noMatch");if(nm)nm.hidden=!!p.length;
   const tAll=Object.keys(TASKS).length,tOn=document.querySelectorAll(".taskgrid input:checked").length;
   const ti=$("#taskInfo");if(ti)ti.textContent=`· ${tOn===tAll?"all":tOn}/${tAll} tasks`;
   $("#startCustom").disabled=!p.length;
@@ -290,6 +294,7 @@ function examHTML(){
     <div class="title">${modeName[S.mode]}</div>
     <div class="stat"><b>${S.idx+1}/${n}</b><small>question</small></div>
     <div class="stat hideable"><b>${answered}</b><small>answered</small></div>
+    ${S.mode!=="full"&&answered?`<div class="stat" title="Reference pace on the real exam: 72 seconds per question"><b>${fmt(S.elapsed/answered)}</b><small>avg · target 1:12</small></div>`:""}
     ${S.phase?`<div class="stat hideable"><b>${S.phase==="s1"?1:2}/2</b><small>section</small></div>`:""}
     <div class="stat timer ${S.limit&&rem<=300?"low":""}" id="timer"><b>${fmt(rem)}</b><small>${S.limit?"left":"elapsed"}</small></div>
     <div class="spacer"></div>
@@ -392,6 +397,7 @@ function pick(orig){const b=q();if(isLocked(b))return;
     if(i>=0)v.splice(i,1);else{if(v.length>=need(b))v.shift();v.push(orig)}
     if(v.length)S.ans[b.id]=v.sort((x,y)=>x-y);else delete S.ans[b.id]}
   else S.ans[b.id]=orig;
+  if(isLocked(b)&&okAns(S.ans[b.id],b)){const w=store.get("wrong",[]);if(w.includes(b.id))store.set("wrong",w.filter(x=>x!==b.id))}  // answered right with feedback: leaves the mistakes list now
   save();render()}
 /* ---------- events ---------- */
 document.addEventListener("click",e=>{
