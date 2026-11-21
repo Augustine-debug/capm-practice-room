@@ -213,7 +213,7 @@ function homeHTML(){
       <div class="row">
         <div style="flex:1;min-width:220px"><div class="label" style="margin-bottom:6px">Number of questions <span id="poolInfo" class="muted" style="text-transform:none;letter-spacing:0;font-weight:400"></span></div>
           <p id="noMatch" class="nomatch" role="status" hidden>No questions match these filters. Tick at least one option in each group, or widen the ECO task filter.</p>
-          <div class="range"><input type="range" id="oCount" min="1" max="${BANK.length}" value="20"><output id="oCountOut">20</output></div></div>
+          <div class="range"><input type="range" id="oCount" aria-label="Number of questions" min="1" max="${BANK.length}" value="20"><output id="oCountOut">20</output></div></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" id="startCustom" data-act="custom">Start practice</button></div>
       </div>
     </article>
@@ -309,7 +309,7 @@ function examHTML(){
     <div class="progress"><i style="width:${answered/n*100}%"></i></div>
   </div>
   <div class="exam">
-    <main class="qcard">
+    <section class="qcard">
       <div class="meta"><span class="qnum">QUESTION ${S.idx+1}</span><span class="chip">Domain ${d.n} · ${esc(d.short)}</span><span class="chip lv${b.lv}">${LEVELS[b.lv]}</span><span class="chip eco" title="${esc((TASKS[b.t]||[""])[0])}">ECO ${b.t}</span>${multi(b)?`<span class="chip new">Select ${need(b)}</span>`:""}<span class="chip">#${b.id}</span></div>
       ${b.ctx?`<div class="ctx">${esc(b.ctx)}</div>`:""}
       <p class="qtext">${esc(b.q)}</p>
@@ -324,7 +324,7 @@ function examHTML(){
         </div>
       </div>
       <p class="hint">Shortcuts: A–E or 1–5 to answer, ← → to move between questions, F to flag.</p>
-    </main>
+    </section>
     <aside class="rail ${railCollapsed?"collapsed":""}">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
         <div class="label">Navigator</div>
@@ -451,6 +451,10 @@ document.addEventListener("click",e=>{
 document.addEventListener("change",e=>{if(view==="home"&&e.target.matches("input"))syncCustom()});
 document.addEventListener("input",e=>{if(e.target.id==="oCount")$("#oCountOut").textContent=e.target.value});
 document.addEventListener("keydown",e=>{
+  // keep keyboard focus inside an open dialog
+  if(e.key==="Tab"&&confirmOpen){const d=$(".dialog");if(d){const f=[...d.querySelectorAll("button,a[href],input")].filter(x=>!x.disabled);if(f.length){const first=f[0],last=f[f.length-1];
+    if(e.shiftKey&&(document.activeElement===first||!d.contains(document.activeElement))){e.preventDefault();last.focus();return}
+    if(!e.shiftKey&&(document.activeElement===last||!d.contains(document.activeElement))){e.preventDefault();first.focus();return}}}}
   if(view==="home"&&confirmOpen&&e.key==="Escape"){confirmOpen=false;render();return}
   if(view!=="exam"||!S||S.phase==="break"||e.metaKey||e.ctrlKey||e.altKey)return;
   if(confirmOpen){if(e.key==="Escape"){confirmOpen=false;render()}return}
