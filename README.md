@@ -10,7 +10,7 @@ A free web app for practising for the PMI **CAPM** exam: full 150-question timed
 - **Custom practice**: pick domains, ECO tasks, difficulty and number of questions; instant feedback and an optional 72-second-per-question timer.
 - **Review mistakes**: retry the questions you got wrong, across all attempts or from one attempt.
 - **Results by domain, task and difficulty**, with a 70% reference mark (PMI does not publish its passing score).
-- **Explanations** for the correct option and for every wrong option. The bank has them in English and Vietnamese; the EN/VI switch is in progress.
+- **Explanations** for the correct option and for every wrong option, in English with a one-tap switch to Vietnamese.
 - **History and resume**: attempts and unfinished exams are saved in your browser only.
 
 The question bank has 396 questions (327 exam-style, 69 definition review), each tagged with its ECO 2023 domain and task.

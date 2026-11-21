@@ -67,15 +67,20 @@ let railCollapsed=true;
 let confirmOpen=false;
 let confirmKind="submit";
 let detailOpen=store.get("detailOpen",false);
+
+/* ---------- explanation language (E2): English by default, Vietnamese on request; remembered ---------- */
+let lang=store.get("lang","en")==="vi"?"vi":"en";
+const langSwitch=()=>`<div class="langsw" role="group" aria-label="Explanation language"><button type="button" data-lang="en" aria-pressed="${lang==="en"}">EN</button><button type="button" data-lang="vi" aria-pressed="${lang==="vi"}" lang="vi" title="Giải thích bằng tiếng Việt">VI</button></div>`;
+const shortHTML=b=>`<p class="exshort"${lang==="vi"?' lang="vi"':""}>${esc(b.ex.short[lang])}</p><p class="inshort"${lang==="vi"?' lang="vi"':""}><b>${lang==="vi"?"Tóm lại":"In short"}:</b> ${esc(b.ex.inShort[lang])}</p>`;
 const okLetters=(b,perm)=>perm.map((o,k)=>isAns(b,o)?L[k]:"").filter(Boolean).join(", ");
 function detailHTML(b,perm){
   const ok=okLetters(b,perm);
-  const wrong=perm.map((orig,pos)=>isAns(b,orig)?"":`<li><span class="wl">${L[pos]} · wrong</span><span>${esc(b.x[L[orig]])}</span></li>`).join("");
+  const wrong=perm.map((orig,pos)=>isAns(b,orig)?"":`<li><span class="wl">${L[pos]} · wrong</span><span>${esc(b.ex.whyWrong[lang][L[orig]])}</span></li>`).join("");
   const tk=TASKS[b.t];
-  return `<details class="more"${detailOpen?" open":""}><summary>Detailed explanation</summary>
-    <div class="why"><span class="wl ok">Why ${ok} is correct</span><p>${esc(b.w)}</p></div>
+  return `<details class="more"${detailOpen?" open":""}${lang==="vi"?' lang="vi"':""}><summary>Detailed explanation</summary>
+    <div class="why"><span class="wl ok">Why ${ok} is correct</span><p>${esc(b.ex.whyCorrect[lang])}</p></div>
     <ul class="wrongs">${wrong}</ul>
-    ${b.n8?`<div class="n8"><span class="wl n8l">PMBOK 8 note</span><p>${esc(b.n8)}</p></div>`:""}
+    ${b.n8&&lang==="vi"?`<div class="n8"><span class="wl n8l">PMBOK 8 note</span><p>${esc(b.n8)}</p></div>`:""}
     ${b.src?`<p class="ecoline muted">Source: ${esc(b.src)}</p>`:""}
     ${tk?`<p class="ecoline"><span class="wl eco">ECO ${b.t}</span> ${esc(tk[0])}</p>`:""}</details>`;
 }
@@ -310,7 +315,7 @@ function examHTML(){
       <p class="qtext">${esc(b.q)}</p>
       <div class="opts">${opts}</div>
       ${multi(b)&&!locked?`<p class="hint" style="margin:-4px 0 12px">Multiple response: ${(sel||[]).length}/${need(b)} selected. Tap again to unselect.</p>`:""}
-      ${locked?`<div class="explain ${okAns(sel,b)?"ok":"bad"}"><b>${okAns(sel,b)?"Correct":"Incorrect · answer "+okLetters(b,perm)}</b>${esc(b.e)}${detailHTML(b,perm)}</div>`:""}
+      ${locked?`<div class="explain ${okAns(sel,b)?"ok":"bad"}"><div class="exhead"><b>${okAns(sel,b)?"Correct":"Incorrect · answer "+okLetters(b,perm)}</b>${langSwitch()}</div>${shortHTML(b)}${detailHTML(b,perm)}</div>`:""}
       <div class="qnav">
         <button class="btn" data-act="prev" ${S.idx===r0?"disabled":""}>← Previous</button>
         <div class="grp">
@@ -366,7 +371,7 @@ function resultHTML(){
       return `<div class="opt ${cls}"><span class="k">${L[k]}</span><span class="t">${esc(b.o[orig])}${picked(sel,orig)?' <small class="muted">· your answer</small>':""}</span></div>`}).join("");
     return `<article class="ritem ${st}"><div class="meta"><span class="qnum">QUESTION ${pos+1}</span><span class="chip">Domain ${b.d}</span><span class="chip lv${b.lv}">${LEVELS[b.lv]}</span><span class="chip eco" title="${esc((TASKS[b.t]||[""])[0])}">ECO ${b.t}</span>${st==="skip"?'<span class="chip">Unanswered</span>':""}${S.flag[id]?'<span class="chip" style="color:var(--flag)">Flagged</span>':""}</div>
       ${b.ctx?`<div class="ctx">${esc(b.ctx)}</div>`:""}<p class="qtext">${esc(b.q)}</p><div class="opts">${opts}</div>
-      <div class="explain"><b>Answer: ${okLetters(b,perm)}</b>${esc(b.e)}${detailHTML(b,perm)}</div></article>`}).join("");
+      <div class="explain"><div class="exhead"><b>Answer: ${okLetters(b,perm)}</b>${langSwitch()}</div>${shortHTML(b)}${detailHTML(b,perm)}</div></article>`}).join("");
   return `
   <header class="mast"><div><div class="label">${modeName[S.mode]} · ${n} question${n===1?"":"s"}${S.t?" · "+when(S.t):""}</div><h1>${S.fromHistory?"Review":"Results"}</h1></div>
     <div class="spec"><div><b>${fmt(S.elapsed)}</b><small>time used</small></div><div><b>${n?fmt(S.elapsed/n):"0:00"}</b><small>per question</small></div></div></header>
@@ -405,12 +410,13 @@ function pick(orig){const b=q();if(isLocked(b))return;
   save();render()}
 /* ---------- events ---------- */
 document.addEventListener("click",e=>{
-  const t=e.target.closest("[data-act],[data-practask],[data-pick],[data-jump],[data-filter],[data-review],[data-redo],[data-redowrong]");if(!t)return;
+  const t=e.target.closest("[data-act],[data-lang],[data-practask],[data-pick],[data-jump],[data-filter],[data-review],[data-redo],[data-redowrong]");if(!t)return;
   if(t.dataset.review){const h=fromHistory(+t.dataset.review);if(h){S=h;reviewFilter="all";go("result")}return}
   if(t.dataset.redo){const h=fromHistory(+t.dataset.redo);if(h)redo(h);return}
   if(t.dataset.redowrong){const h=fromHistory(+t.dataset.redowrong);if(h){const w=h.ids.filter(id=>!okAns(h.ans[id],BANK[id-1]));if(w.length)newSession("retry",shuffle(w),{instant:true})}return}
   if(t.dataset.practask){const ids=shuffleKeepGroups(BANK.filter(b=>b.mode==="exam"&&b.t===t.dataset.practask).map(b=>b.id)).slice(0,20);
     if(ids.length)newSession("custom",ids,{instant:true});return}
+  if(t.dataset.lang){lang=t.dataset.lang;store.set("lang",lang);const y=window.scrollY;render();window.scrollTo(0,y);return}
   if(t.dataset.pick!==undefined){pick(+t.dataset.pick);return}
   if(t.dataset.jump!==undefined){const i=+t.dataset.jump;if(!canGo(i))return;S.idx=i;save();render();return}
   if(t.dataset.filter){reviewFilter=t.dataset.filter;render();return}
@@ -587,9 +593,8 @@ async function loadBank(){
     const data=await res.json();
     BANK=[];
     // map the file's readable fields (docs/question-schema.md) to the short names the views use;
-    // explanations show in Vietnamese for now, the EN/VI switch comes with E2 (#18)
     data.forEach(x=>{const ex=x.explanation;BANK[x.id-1]={id:x.id,d:x.domain,lv:x.difficulty,q:x.question,o:x.options,a:x.answer,
-      e:ex.short.vi,w:ex.whyCorrect.vi,x:ex.whyWrong.vi,ex,t:x.task,ctx:x.context||"",n8:x.pmbok8Note||"",
+      ex,t:x.task,ctx:x.context||"",n8:x.pmbok8Note||"",
       src:x.source.text,org:x.source.type,mode:x.mode,rel:x.related||0}});
     const byCtx={};BANK.forEach(b=>{if(b.ctx){(byCtx[b.ctx]=byCtx[b.ctx]||[]).push(b.id)}});
     GROUP={};Object.values(byCtx).forEach(g=>{if(g.length>1)g.forEach(id=>GROUP[id]=Math.min(...g))});
