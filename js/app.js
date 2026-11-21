@@ -17,7 +17,18 @@ const isAns=(b,i)=>multi(b)?b.a.includes(i):i===b.a;
 const picked=(v,i)=>Array.isArray(v)?v.includes(i):v===i;
 const BANK_V=1;   // question-bank version, stored with each attempt
 const MOCK_N={1:54,2:26,3:30,4:40}; // full mock: 150 questions drawn by ECO domain weight
-function fullMockIds(){return shuffle(DOMAINS.flatMap(d=>shuffle(BANK.filter(b=>b.d===d.n&&b.mode==="exam").map(b=>b.id)).slice(0,MOCK_N[d.n])))}
+/* questions that share one set of facts (same "context") form a group: they are drawn together and kept side by side */
+let GROUP={};  // id -> id of the first question in its group (filled after loading)
+function unitsOf(ids){const seen=new Map();ids.forEach(id=>{const g=GROUP[id]||id;if(!seen.has(g))seen.set(g,[]);seen.get(g).push(id)});
+  return [...seen.values()].map(u=>u.sort((a,b)=>a-b))}
+const shuffleKeepGroups=ids=>shuffle(unitsOf(ids)).flat();
+function fullMockIds(){
+  const picked=[];
+  DOMAINS.forEach(d=>{let need=MOCK_N[d.n];
+    for(const u of shuffle(unitsOf(BANK.filter(b=>b.d===d.n&&b.mode==="exam").map(b=>b.id)))){
+      if(u.length<=need){picked.push(u);need-=u.length}if(!need)break}});
+  return shuffle(picked).flat();
+}
 const SEC=75;     // full mock: section 1 = Q1-75, then a 10-minute break
 const BREAK=600;
 
@@ -76,7 +87,7 @@ function newSession(mode,ids,opt){
   if(mode==="full"&&ids.length>SEC){S.phase="s1";S.brk=0}
   save();go("exam");
 }
-function save(){if(S&&!S.done)store.set("session",S);else store.del("session")}
+function save(){if(!S||S.fromHistory)return;if(!S.done)store.set("session",S);else store.del("session")}  // no active attempt: leave any saved one alone
 function q(){return BANK[S.ids[S.idx]-1]}
 function isRight(id){return okAns(S.ans[id],BANK[id-1])}
 /* full mock sections: s1 = Q1-75, break, s2 = Q76-150 (no return to s1) */
@@ -127,7 +138,7 @@ function fromHistory(t){
     limit:h.limit||0,instant:!!h.instant,done:true,t:h.t,fromHistory:true,drop:h.drop||0};
 }
 function redo(src){
-  const ids=shuffle(src.ids);
+  const ids=shuffleKeepGroups(src.ids);
   const shuffleOpts=src.ids.some(id=>src.perm[id]&&src.perm[id].some((v,i)=>v!==i));
   newSession(src.mode,ids,{shuffleOpts,instant:src.instant,
     limit:src.mode==="full"?180*60:(src.limit?ids.length*72:0)});
@@ -159,7 +170,7 @@ function homeHTML(){
   const lChecks=[1,2,3].map(l=>`<label class="chk"><input type="checkbox" id="cl${l}" data-l="${l}" checked><span>${LEVELS[l]}</span><span class="n">${BANK.filter(b=>b.lv===l).length}</span></label>`).join("");
   return `
   <header class="mast">
-    <div><div class="label">CAPM · Exam Content Outline 2023</div><h1>CAPM <span>Practice Room</span></h1></div>
+    <div><div class="label">CAPM · Exam Content Outline 2023</div><h1>Practise for the <span>CAPM</span> exam</h1></div>
     <div class="spec"><div><b>150</b><small>questions</small></div><div><b>180′</b><small>minutes</small></div><div><b>72″</b><small>per question</small></div><div><b>135</b><small>scored</small></div><div><b>10′</b><small>break after Q75</small></div></div>
   </header>
   ${saved&&!saved.done?`<div class="resume"><div><b>You have an attempt in progress.</b> <span class="muted">${modeName[saved.mode]} · ${Object.keys(saved.ans).length}/${saved.ids.length} answered · ${fmt(saved.elapsed)}</span></div>
@@ -200,6 +211,22 @@ function homeHTML(){
       </div>
     </article>
   </section>
+  ${confirmOpen&&confirmKind==="start"?`<div class="overlay" data-act="close"><div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlgT">
+    <h3 id="dlgT">Start the full mock exam?</h3>
+    <ul class="rules">
+      <li><b>150 questions</b>, drawn by the ECO 2023 domain weights.</li>
+      <li><b>180 minutes</b>, counting down while you work. When it reaches zero, the exam is submitted for you.</li>
+      <li>After question 75 you can take <b>a break of up to 10 minutes</b>. The exam clock stops during the break.</li>
+      <li>Once you end section 1, you <b>cannot return to questions 1–75</b>.</li>
+      <li>Answers and explanations are shown only after you submit. You can pause and resume later.</li>
+    </ul>
+    <div class="row"><button class="btn" data-act="close">Not now</button><button class="btn primary" data-act="startFull">Start exam</button></div>
+  </div></div>`:""}
+  ${confirmOpen&&confirmKind==="discard"?`<div class="overlay" data-act="close"><div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlgT">
+    <h3 id="dlgT">Discard this attempt?</h3>
+    <p style="margin:0">Your answers in the attempt in progress will be deleted and it will not be saved to your history.</p>
+    <div class="row"><button class="btn" data-act="close">Keep it</button><button class="btn primary" data-act="discardYes">Discard</button></div>
+  </div></div>`:""}
   <section class="ledger">
     <h2>History</h2>
     <p class="muted" style="margin:0 0 10px;font-size:14px">Open a past attempt to review every question with explanations, retake the whole set, or retry only the questions you missed.</p>
@@ -378,13 +405,15 @@ document.addEventListener("click",e=>{
   const a=t.dataset.act;
   if(a==="close"&&t.classList.contains("overlay")&&e.target!==t)return;
   switch(a){
-    case "full":{const ids=fullMockIds();newSession("full",ids,{limit:180*60});break}
-    case "custom":{const p=pool();const ids=($("#oShuffle").checked?shuffle(p):p).slice(0,+$("#oCount").value);
+    case "full":confirmKind="start";confirmOpen=true;render();$(".dialog .primary")?.focus();break;
+    case "startFull":{const ids=fullMockIds();newSession("full",ids,{limit:180*60});break}
+    case "custom":{const p=pool();const ids=($("#oShuffle").checked?shuffleKeepGroups(p):p).slice(0,+$("#oCount").value);
       newSession("custom",ids,{shuffleOpts:$("#oOpts").checked,instant:$("#oInstant").checked,limit:$("#oTimer").checked?ids.length*72:0});break}
     case "retryAll":{const w=store.get("wrong",[]);if(w.length)newSession("retry",shuffle(w),{instant:true});break}
     case "retryThis":{const w=S.ids.filter(id=>!isRight(id));if(w.length)newSession("retry",shuffle(w),{instant:true});break}
     case "resume":S=store.get("session",null);if(S)go("exam");break;
-    case "discard":store.del("session");S=null;render();break;
+    case "discard":confirmKind="discard";confirmOpen=true;render();$(".dialog .primary")?.focus();break;
+    case "discardYes":store.del("session");S=null;confirmOpen=false;render();break;
     case "prev":goPrev();break;
     case "next":goNext();break;
     case "endsec":endSection();break;
@@ -404,6 +433,7 @@ document.addEventListener("click",e=>{
 document.addEventListener("change",e=>{if(view==="home"&&e.target.matches("input"))syncCustom()});
 document.addEventListener("input",e=>{if(e.target.id==="oCount")$("#oCountOut").textContent=e.target.value});
 document.addEventListener("keydown",e=>{
+  if(view==="home"&&confirmOpen&&e.key==="Escape"){confirmOpen=false;render();return}
   if(view!=="exam"||!S||S.phase==="break"||e.metaKey||e.ctrlKey||e.altKey)return;
   if(confirmOpen){if(e.key==="Escape"){confirmOpen=false;render()}return}
   const k=e.key.toLowerCase();let pos=-1;
@@ -549,6 +579,8 @@ async function loadBank(){
     data.forEach(x=>{const ex=x.explanation;BANK[x.id-1]={id:x.id,d:x.domain,lv:x.difficulty,q:x.question,o:x.options,a:x.answer,
       e:ex.short.vi,w:ex.whyCorrect.vi,x:ex.whyWrong.vi,ex,t:x.task,ctx:x.context||"",n8:x.pmbok8Note||"",
       src:x.source.text,org:x.source.type,mode:x.mode,rel:x.related||0}});
+    const byCtx={};BANK.forEach(b=>{if(b.ctx){(byCtx[b.ctx]=byCtx[b.ctx]||[]).push(b.id)}});
+    GROUP={};Object.values(byCtx).forEach(g=>{if(g.length>1)g.forEach(id=>GROUP[id]=Math.min(...g))});
     routeFromHash();render();
   }catch(err){
     app.innerHTML=`<div class="empty"><b>Could not load the questions.</b><br>If you opened index.html straight from your disk, run a local web server instead (see the README). <small class="muted">${esc(err.message)}</small></div>`;
