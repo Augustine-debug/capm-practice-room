@@ -358,6 +358,5 @@ a.report:hover{color:var(--accent)}
 .btn.outline:hover{background:var(--accent-soft)}
 .fcbar .tab.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
 .fcbar .tab.on::before{content:"✓ "}
-.startrow{padding:14px 16px;margin:0;border:1px solid var(--line);border-radius:var(--r);background:var(--sunk)}
-.startrow+.form{margin-top:4px}
+.startrow{padding-bottom:16px;border-bottom:1px dashed var(--line)}
 @media (max-width:640px){.homespec{display:none}}

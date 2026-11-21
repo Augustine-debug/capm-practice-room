@@ -267,7 +267,7 @@ function homeHTML(){
         <div style="flex:1;min-width:220px"><div class="label" style="margin-bottom:6px">Number of questions <span id="poolInfo" class="muted" style="text-transform:none;letter-spacing:0;font-weight:400"></span></div>
           <p id="noMatch" class="nomatch" role="status" hidden>No questions match these filters. Tick at least one option in each group, or widen the ECO task filter.</p>
           <div class="range"><input type="range" id="oCount" aria-label="Number of questions" min="1" max="${BANK.length}" value="20"><output id="oCountOut">20</output></div></div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" id="startCustom" data-act="custom"><span>Start <span id="startN">20</span> questions</span></button></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" id="startCustom" data-act="custom">Start practice</button></div>
       </div>
       <div class="form">
         <fieldset><legend class="label">Question type</legend>${mChecks}<legend class="label" style="margin-top:10px">Domain</legend>${dChecks}</fieldset>
@@ -336,7 +336,7 @@ function pool(){
 function syncCustom(){
   const p=pool(),r=$("#oCount"),o=$("#oCountOut");if(!r)return;
   const max=Math.max(1,p.length);r.max=max;if(+r.value>max)r.value=max;
-  o.textContent=p.length?r.value:0;const sn=$("#startN");if(sn)sn.textContent=p.length?r.value:0;
+  o.textContent=p.length?r.value:0;
   $("#poolInfo").textContent=`(${p.length} matching)`;
   const nm=$("#noMatch");if(nm)nm.hidden=!!p.length;
   const tAll=Object.keys(TASKS).length,tOn=document.querySelectorAll(".taskgrid input:checked").length;
@@ -549,7 +549,7 @@ document.addEventListener("click",e=>{
   }
 });
 document.addEventListener("change",e=>{if(view==="home"&&e.target.matches("input"))syncCustom()});
-document.addEventListener("input",e=>{if(e.target.id==="oCount"){$("#oCountOut").textContent=e.target.value;const sn=$("#startN");if(sn)sn.textContent=e.target.value}});
+document.addEventListener("input",e=>{if(e.target.id==="oCount")$("#oCountOut").textContent=e.target.value});
 document.addEventListener("keydown",e=>{
   // keep keyboard focus inside an open dialog
   if(e.key==="Tab"&&confirmOpen){const d=$(".dialog");if(d){const f=[...d.querySelectorAll("button,a[href],input")].filter(x=>!x.disabled);if(f.length){const first=f[0],last=f[f.length-1];
