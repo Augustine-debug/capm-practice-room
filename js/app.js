@@ -241,7 +241,7 @@ function homeHTML(){
       <div class="label">Mode 3</div>
       <h2>Flashcards</h2>
       <p>${BANK.filter(b=>b.mode==="definition").length} cards for the key CAPM terms. Flip each card, mark it “Know it” or “Review again”, and jump to a related scenario question.</p>
-      <a class="btn go" href="#/cards">Study flashcards</a>
+      <a class="btn go" href="#/cards">Study flashcards <span aria-hidden="true">→</span></a>
     </article>
     <article class="mode wide">
       <div class="label">Mode 4</div>
