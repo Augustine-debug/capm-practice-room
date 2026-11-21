@@ -161,6 +161,8 @@ function render(){
   if(view==="home")app.innerHTML=navHTML("home")+homeHTML()+footHTML();
   else if(view==="about")app.innerHTML=navHTML("about")+aboutHTML()+footHTML();
   else if(view==="guide")app.innerHTML=navHTML("guide")+guideHTML()+footHTML();
+  else if(view==="cards")app.innerHTML=navHTML("cards")+cardsHTML()+footHTML();
+  else if(view==="cardq")app.innerHTML=navHTML("cards")+cardQHTML();
   else if(view==="exam")app.innerHTML=examHTML();
   else app.innerHTML=resultHTML();
   if(view==="home")syncCustom();
@@ -194,8 +196,14 @@ function homeHTML(){
       <p>${wrong.length?`You have <b class="mono">${wrong.length}</b> question${wrong.length===1?"":"s"} you got wrong or left unanswered. A question leaves this list once you answer it correctly.`:"No mistakes yet. After each submitted attempt, questions you got wrong or skipped are collected here."}</p>
       <button class="btn go" data-act="retryAll" ${wrong.length?"":"disabled"}>Review ${wrong.length||""} mistake${wrong.length===1?"":"s"}</button>
     </article>
-    <article class="mode wide">
+    <article class="mode">
       <div class="label">Mode 3</div>
+      <h2>Flashcards</h2>
+      <p>${BANK.filter(b=>b.mode==="definition").length} cards for the key CAPM terms. Flip each card, mark it “Know it” or “Review again”, and jump to a related scenario question.</p>
+      <a class="btn go" href="#/cards">Study flashcards</a>
+    </article>
+    <article class="mode wide">
+      <div class="label">Mode 4</div>
       <h2>Custom practice</h2>
       <div class="form">
         <fieldset><legend class="label">Question type</legend>${mChecks}<legend class="label" style="margin-top:10px">Domain</legend>${dChecks}</fieldset>
@@ -410,12 +418,13 @@ function pick(orig){const b=q();if(isLocked(b))return;
   save();render()}
 /* ---------- events ---------- */
 document.addEventListener("click",e=>{
-  const t=e.target.closest("[data-act],[data-lang],[data-practask],[data-pick],[data-jump],[data-filter],[data-review],[data-redo],[data-redowrong]");if(!t)return;
+  const t=e.target.closest("[data-act],[data-fc],[data-lang],[data-practask],[data-pick],[data-jump],[data-filter],[data-review],[data-redo],[data-redowrong]");if(!t)return;
   if(t.dataset.review){const h=fromHistory(+t.dataset.review);if(h){S=h;reviewFilter="all";go("result")}return}
   if(t.dataset.redo){const h=fromHistory(+t.dataset.redo);if(h)redo(h);return}
   if(t.dataset.redowrong){const h=fromHistory(+t.dataset.redowrong);if(h){const w=h.ids.filter(id=>!okAns(h.ans[id],BANK[id-1]));if(w.length)newSession("retry",shuffle(w),{instant:true})}return}
   if(t.dataset.practask){const ids=shuffleKeepGroups(BANK.filter(b=>b.mode==="exam"&&b.t===t.dataset.practask).map(b=>b.id)).slice(0,20);
     if(ids.length)newSession("custom",ids,{instant:true});return}
+  if(t.dataset.fc){fcAct(t.dataset.fc);return}
   if(t.dataset.lang){lang=t.dataset.lang;store.set("lang",lang);const y=window.scrollY;render();window.scrollTo(0,y);return}
   if(t.dataset.pick!==undefined){pick(+t.dataset.pick);return}
   if(t.dataset.jump!==undefined){const i=+t.dataset.jump;if(!canGo(i))return;S.idx=i;save();render();return}
@@ -474,7 +483,7 @@ document.addEventListener("visibilitychange",()=>{if(document.hidden)save()});
 function navHTML(cur){
   const a=(href,k,t)=>`<a href="${href}"${cur===k?' aria-current="page"':""}>${t}</a>`;
   return `<nav class="topnav" aria-label="Main"><a class="brand" href="#/">CAPM <span>Practice Room</span></a>
-    <div class="links">${a("#/","home","Practice")}${a("#/guide","guide","Exam guide")}${a("#/about","about","About")}</div></nav>`;
+    <div class="links">${a("#/","home","Practice")}${a("#/cards","cards","Flashcards")}${a("#/guide","guide","Exam guide")}${a("#/about","about","About")}</div></nav>`;
 }
 function footHTML(){
   return `<footer class="foot">
@@ -570,7 +579,7 @@ function guideHTML(){
 
   <h2>How to study with this app</h2>
   <ol>
-    <li>Review key terms with the definition questions in Custom practice.</li>
+    <li>Learn the key terms with <a href="#/cards">Flashcards</a>.</li>
     <li>Practise by domain or ECO task with instant feedback, at about <b>72 seconds per question</b>, the real exam pace.</li>
     <li>Take a timed 150-question mock exam.</li>
     <li>Retry your mistakes and practise your weakest tasks from the results page.</li>
@@ -580,12 +589,77 @@ function guideHTML(){
   <p class="note">Sources: ${ext(SITE.pmi,"PMI's CAPM page")}, which links the CAPM ECO 2023 and the PMI Certification Handbook. Fees depend on region and PMI membership: see PMI's site. Rules can change; check PMI before you book. Last checked ${SITE.bankUpdated}.</p>
   </article>`;
 }
+
+/* ---------- flashcards (C1–C3): the definition questions as cards; progress kept in this browser ---------- */
+const FC={ids:[],idx:0,flipped:false,domains:[1,2,3,4],againOnly:false};
+let cardMarks=store.get("cards",{});   // id -> "know" | "again"
+const fcPool=()=>BANK.filter(b=>b.mode==="definition"&&FC.domains.includes(b.d)&&(!FC.againOnly||cardMarks[b.id]==="again")).map(b=>b.id);
+function fcBuild(){FC.ids=shuffle(fcPool());FC.idx=0;FC.flipped=false}
+const fcCard=()=>BANK[FC.ids[FC.idx]-1];
+function fcAct(a){
+  if(a==="flip")FC.flipped=!FC.flipped;
+  else if(a==="next"){if(FC.idx<FC.ids.length-1){FC.idx++;FC.flipped=false}}
+  else if(a==="prev"){if(FC.idx>0){FC.idx--;FC.flipped=false}}
+  else if(a==="know"||a==="again"){const b=fcCard();cardMarks[b.id]=a;store.set("cards",cardMarks);
+    if(FC.idx<FC.ids.length-1){FC.idx++;FC.flipped=false}}
+  else if(a==="shuffle")fcBuild();
+  else if(a==="againOnly"){FC.againOnly=!FC.againOnly;fcBuild()}
+  else if(a.startsWith("d")){const d=+a.slice(1);FC.domains=FC.domains.includes(d)?FC.domains.filter(x=>x!==d):[...FC.domains,d].sort();fcBuild()}
+  else if(a==="related"){view="cardq";render();window.scrollTo(0,0);return}
+  else if(a==="back"){view="cards";render();window.scrollTo(0,0);return}
+  else if(a==="reset"){cardMarks={};store.set("cards",cardMarks);fcBuild()}
+  render();
+}
+function cardsHTML(){
+  const all=BANK.filter(b=>b.mode==="definition"),known=all.filter(b=>cardMarks[b.id]==="know").length,again=all.filter(b=>cardMarks[b.id]==="again").length;
+  const chips=DOMAINS.map(d=>`<button class="tab ${FC.domains.includes(d.n)?"on":""}" data-fc="d${d.n}" aria-pressed="${FC.domains.includes(d.n)}">D${d.n} · ${esc(d.short)} · ${all.filter(b=>b.d===d.n).length}</button>`).join("");
+  const head=`<header class="mast"><div><div class="label">Flashcards</div><h1>Learn the key terms</h1></div>
+    <div class="spec"><div><b>${known}/${all.length}</b><small>cards known</small></div><div><b>${again}</b><small>to review again</small></div></div></header>
+    <div class="fcbar"><div class="tabs" role="group" aria-label="Domains">${chips}</div>
+      <label class="chk inline"><input type="checkbox" data-fc="againOnly" ${FC.againOnly?"checked":""}><span>Only cards marked “Review again”</span></label></div>`;
+  if(!FC.ids.length)return head+`<div class="empty">${FC.againOnly?"No cards marked “Review again” in these domains. Nice work!":"Pick at least one domain."}</div>`;
+  const b=fcCard(),ans=(Array.isArray(b.a)?b.a:[b.a]),mark=cardMarks[b.id];
+  const opts=b.o.map((o,i)=>`<li class="${FC.flipped&&ans.includes(i)?"right":""}"><span class="k">${L[i]}</span><span>${esc(o)}</span></li>`).join("");
+  const back=FC.flipped?`<div class="fcback"${lang==="vi"?' lang="vi"':""}><div class="exhead"><b>Answer: ${ans.map(i=>L[i]).join(", ")}</b>${langSwitch()}</div>${shortHTML(b)}
+      ${b.rel?`<button class="btn sm" data-fc="related">Try a related question →</button>`:""}</div>`:"";
+  return head+`<section class="fccard ${FC.flipped?"flipped":""}" aria-live="polite">
+    <div class="meta"><span class="qnum">CARD ${FC.idx+1} / ${FC.ids.length}</span><span class="chip">Domain ${b.d}</span><span class="chip eco">ECO ${b.t}</span>${mark?`<span class="chip ${mark==="know"?"known":""}">${mark==="know"?"Known":"Review again"}</span>`:""}</div>
+    <div class="fcface" data-fc="flip"><p class="qtext">${esc(b.q)}</p><ol class="fcopts">${opts}</ol>
+      ${FC.flipped?"":`<span class="hint">Tap the card or press Space to show the answer</span>`}</div>
+    ${back}
+    <div class="qnav"><button class="btn" data-fc="prev" ${FC.idx?"":"disabled"}>← Previous</button>
+      <div class="grp">${FC.flipped?`<button class="btn" data-fc="again">Review again</button><button class="btn primary" data-fc="know">Know it</button>`:`<button class="btn primary" data-fc="flip">Show answer</button>`}
+      <button class="btn" data-fc="next" ${FC.idx<FC.ids.length-1?"":"disabled"}>Next →</button></div></div>
+  </section>
+  <p class="hint">Shortcuts: Space to flip, ← → to move, K for “Know it”, R for “Review again”. Swipe left or right on a phone. <button class="linkbtn" data-fc="shuffle">Shuffle again</button> · <button class="linkbtn" data-fc="reset">Clear my progress</button></p>`;
+}
+function cardQHTML(){
+  const c=fcCard(),b=BANK[c.rel-1];if(!b){view="cards";return cardsHTML()}
+  const perm=b.o.map((_,i)=>i);
+  const opts=perm.map((o,k)=>`<div class="opt ${isAns(b,o)?"right":""}"><span class="k">${L[k]}</span><span class="t">${esc(b.o[o])}</span></div>`).join("");
+  return `<section class="qcard cardq"><div class="meta"><span class="qnum">RELATED QUESTION</span><span class="chip">Domain ${b.d}</span><span class="chip eco">ECO ${b.t}</span><span class="chip lv${b.lv}">${LEVELS[b.lv]}</span></div>
+    ${b.ctx?`<div class="ctx">${esc(b.ctx)}</div>`:""}<p class="qtext">${esc(b.q)}</p><div class="opts">${opts}</div>
+    <div class="explain"><div class="exhead"><b>Answer: ${okLetters(b,perm)}</b>${langSwitch()}</div>${shortHTML(b)}${detailHTML(b,perm)}</div>
+    <div class="qnav"><button class="btn primary" data-fc="back">← Back to card ${FC.idx+1}</button></div></section>`;
+}
+// keyboard and swipe for flashcards
+document.addEventListener("keydown",e=>{if(view!=="cards"||!FC.ids.length||e.metaKey||e.ctrlKey||e.altKey)return;
+  if(e.target.matches("input,textarea"))return;
+  const k=e.key.toLowerCase();
+  if(e.key===" "){e.preventDefault();fcAct("flip")}else if(e.key==="ArrowRight")fcAct("next");else if(e.key==="ArrowLeft")fcAct("prev");
+  else if(k==="k"&&FC.flipped)fcAct("know");else if(k==="r"&&FC.flipped)fcAct("again")});
+let touchX=null;
+document.addEventListener("touchstart",e=>{if(view==="cards"&&e.target.closest(".fccard"))touchX=e.touches[0].clientX},{passive:true});
+document.addEventListener("touchend",e=>{if(touchX===null)return;const dx=e.changedTouches[0].clientX-touchX;touchX=null;if(Math.abs(dx)>50)fcAct(dx<0?"next":"prev")},{passive:true});
+
 function routeFromHash(){
   const h=location.hash.replace(/^#\/?/,"");
   if(view==="exam"||view==="result")return;
-  view=h==="about"?"about":h==="guide"?"guide":"home";
+  if(view==="cardq")return;
+  view=h==="about"?"about":h==="guide"?"guide":h==="cards"?"cards":"home";
+  if(view==="cards"&&!FC.ids.length)fcBuild();
 }
-window.addEventListener("hashchange",()=>{if(view==="exam"||view==="result")return;routeFromHash();render();window.scrollTo(0,0)});
+window.addEventListener("hashchange",()=>{if(view==="exam"||view==="result")return;if(view==="cardq")view="cards";routeFromHash();render();window.scrollTo(0,0)});
 
 /* ---------- start: load the question bank, then draw ---------- */
 async function loadBank(){
