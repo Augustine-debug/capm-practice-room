@@ -217,3 +217,30 @@ tr:last-child td{border-bottom:0}
   .bar .hideable{display:none}
 }
 @media (prefers-reduced-motion: reduce){ *{transition:none!important} }
+
+/* site navigation, footer and info pages */
+.topnav{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;padding-top:16px}
+.topnav a{color:var(--ink);text-decoration:none;font-weight:600}
+.topnav .brand{font-family:var(--f-display);font-weight:800;font-size:17px}
+.topnav .brand span{color:var(--accent)}
+.topnav .links{display:flex;gap:4px;flex-wrap:wrap}
+.topnav .links a{padding:8px 12px;border-radius:8px;min-height:40px;display:inline-flex;align-items:center}
+.topnav .links a:hover{background:var(--sunk)}
+.topnav .links a[aria-current="page"]{background:var(--accent-soft);color:var(--accent)}
+.foot{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);display:grid;gap:10px;font-size:14px}
+.foot .links{display:flex;gap:16px;flex-wrap:wrap}
+.foot a{color:var(--accent)}
+.foot a.btn{color:var(--ink);text-decoration:none}
+.foot p{margin:0;max-width:80ch}
+.page{max-width:760px}
+.page .lead{font-size:18px;margin:20px 0}
+.page h2{font-size:20px;margin:28px 0 10px}
+.page p,.page li{max-width:70ch}
+.page ul,.page ol{padding-left:22px}
+.page li{margin:4px 0}
+.page a{color:var(--accent)}
+.page a.btn.primary{color:var(--accent-ink);text-decoration:none}
+.page .tablewrap{margin:12px 0}
+.page ul.tasks ul{padding-left:18px}
+.page table.hist{min-width:0;width:100%}
+.page table.hist td,.page table.hist th{white-space:normal;vertical-align:top}
