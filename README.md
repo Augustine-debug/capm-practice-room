@@ -55,6 +55,10 @@ The code lives on GitHub; the site is published with [Vercel](https://vercel.com
 
 Found a wrong answer, a typo or a bug? Please [open an issue](https://github.com/Augustine-debug/capm-practice-room/issues).
 
+## Visit counts
+
+Visits are counted with [GoatCounter](https://www.goatcounter.com) (no cookies, no personal data). The public account is `duyduy`; the script tag is in `index.html`, and `countPage()` / `countEvent()` in `js/app.js` send page views (`/`, `/guide`, `/about`, `/cards`) and events (`start-full`, `start-custom`, `start-retry`, `finish-…`). Visits from `localhost` are not counted.
+
 ## Licences
 
 - **Code**: MIT, see [LICENSE](LICENSE).
