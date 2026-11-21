@@ -164,6 +164,7 @@ function scopeOf(h){
 /* ---------- views ---------- */
 function render(){
   const app=$("#app");
+  const oldGrid=view==="exam"?$(".rail .grid"):null,gridTop=oldGrid?oldGrid.scrollTop:0;
   if(view==="home")app.innerHTML=navHTML("home")+homeHTML()+footHTML();
   else if(view==="about")app.innerHTML=navHTML("about")+aboutHTML()+footHTML();
   else if(view==="guide")app.innerHTML=navHTML("guide")+guideHTML()+footHTML();
@@ -172,6 +173,18 @@ function render(){
   else if(view==="exam")app.innerHTML=examHTML();
   else app.innerHTML=resultHTML();
   if(view==="home")syncCustom();
+  if(view==="exam")keepNavigatorInView(oldGrid?gridTop:null);
+}
+/* The navigator grid is rebuilt on every render. Keep its scroll position, and scroll it
+   (not the page) just enough to show the current question. */
+function keepNavigatorInView(top){
+  const g=$(".rail .grid"),c=g&&g.querySelector(".cell.cur");if(!g)return;
+  if(top!==null)g.scrollTop=top;
+  if(!c||g.scrollHeight<=g.clientHeight)return;
+  const pad=6,ct=c.getBoundingClientRect().top-g.getBoundingClientRect().top+g.scrollTop,cb=ct+c.offsetHeight;
+  if(top===null)g.scrollTop=Math.max(0,ct-(g.clientHeight-c.offsetHeight)/2);
+  else if(ct<g.scrollTop+pad)g.scrollTop=Math.max(0,ct-pad);
+  else if(cb>g.scrollTop+g.clientHeight-pad)g.scrollTop=cb-g.clientHeight+pad;
 }
 
 function homeHTML(){
