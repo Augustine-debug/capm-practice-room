@@ -411,7 +411,11 @@ async function loadBank(){
     if(!res.ok)throw new Error("HTTP "+res.status);
     const data=await res.json();
     BANK=[];
-    data.forEach(x=>{BANK[x.id-1]={id:x.id,d:x.d,lv:x.lv,q:x.q,o:x.o,a:x.a,e:x.s,w:x.w,x:x.x,t:x.t,ctx:x.ctx||"",n8:x.n8||"",src:x.src||"",org:x.org,mode:x.mode}});
+    // map the file's readable fields (docs/question-schema.md) to the short names the views use;
+    // explanations show in Vietnamese for now, the EN/VI switch comes with E2 (#18)
+    data.forEach(x=>{const ex=x.explanation;BANK[x.id-1]={id:x.id,d:x.domain,lv:x.difficulty,q:x.question,o:x.options,a:x.answer,
+      e:ex.short.vi,w:ex.whyCorrect.vi,x:ex.whyWrong.vi,ex,t:x.task,ctx:x.context||"",n8:x.pmbok8Note||"",
+      src:x.source.text,org:x.source.type,mode:x.mode,rel:x.related||0}});
     render();
   }catch(err){
     app.innerHTML=`<div class="empty"><b>Không tải được ngân hàng câu hỏi (could not load questions).</b><br>Nếu bạn đang mở file index.html trực tiếp trên máy, hãy chạy một web server cục bộ, xem README (run a local server, see README). <small class="muted">${esc(err.message)}</small></div>`;

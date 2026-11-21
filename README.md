@@ -14,3 +14,13 @@ python3 -m http.server 8000
 ```
 
 Then open http://localhost:8000 in your browser.
+
+## Check the question bank before each release
+
+Questions live in `data/questions.json`; the format is described in [docs/question-schema.md](docs/question-schema.md). After editing questions, run:
+
+```
+node scripts/validate.js
+```
+
+It needs only [Node.js](https://nodejs.org), no packages. It prints a summary and ends with `OK: no errors` or a list of what to fix. The same check runs automatically on every pull request (GitHub Actions), and a pull request with errors shows a red ✗.
