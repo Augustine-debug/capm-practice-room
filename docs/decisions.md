@@ -15,6 +15,7 @@ The main product and technical decisions behind CAPM Practice Room, with the opt
 | D9 | Count visits with GoatCounter | 2026-11-21 |
 | D10 | Donations through Ko-fi; no ads, no paid tier | 2026-11-21 |
 | D11 | 70% shown as a reference mark, not a pass mark | 2026-11-21 |
+| D12 | No offline mode; dark mode in v1.0 | 2026-11-22 |
 
 ---
 
@@ -51,7 +52,7 @@ The main product and technical decisions behind CAPM Practice Room, with the opt
 - **Options:** user accounts with a database · progress in the browser (`localStorage`).
 - **Decision:** the browser, under keys starting with `cpr.`.
 - **Why:** no sign-up step, no personal data to protect, no server cost; candidates can start in one tap.
-- **Trade-off:** progress does not move between devices and is lost if browser data is cleared. The app says so on the results history and the About page.
+- **Trade-off:** progress does not move between devices and is lost if browser data is cleared. The app says so on the results history and the About page. Using progress on more than one device is planned for v1.2 (#29), not a priority; if it needs sign-in, D5 and D7 will be revisited.
 
 ## D6 · English interface, explanations in English and Vietnamese
 
@@ -90,3 +91,10 @@ The main product and technical decisions behind CAPM Practice Room, with the opt
 - **Context:** PMI does not publish a passing score for the CAPM.
 - **Decision:** results show a 70% line labelled as a reference mark, and the app says the real passing score is not published.
 - **Why:** candidates get a target without the app claiming to know PMI's cut score.
+
+## D12 · No offline mode; dark mode in v1.0
+
+- **Context:** both were listed for v1.1 in the PRD.
+- **Decision:** offline mode (PWA, #27) is dropped; dark mode (#25) moves into the launch release as a System / Light / Dark switch.
+- **Why:** candidates study online and the app is small and fast, so offline support adds work with little gain. Many candidates study at night, and the dark colours already exist; only the switch is missing.
+- **Release plan after this:** v1.1 = exam-like question types (#26) and sharing results (#28); v1.2 = progress on more than one device (#29), not a priority.
