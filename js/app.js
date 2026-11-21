@@ -188,7 +188,15 @@ function render(){
   if(view==="home")syncCustom();
   if(view==="exam")keepNavigatorInView(oldGrid?gridTop:null);
   countPage();
+  markScrollRegions();
 }
+/* A table wider than the screen scrolls sideways; make that scroll box reachable and named
+   for keyboard and screen-reader users (WCAG 2.1.1), only while it actually scrolls. */
+function markScrollRegions(){document.querySelectorAll(".tablewrap").forEach(w=>{
+  if(w.scrollWidth>w.clientWidth+1){w.tabIndex=0;w.setAttribute("role","region");
+    if(!w.hasAttribute("aria-label")){const h=w.querySelector("th");w.setAttribute("aria-label",(h?h.textContent+" table":"Table")+", scroll sideways")}}
+  else{w.removeAttribute("tabindex");w.removeAttribute("role");w.removeAttribute("aria-label")}})}
+window.addEventListener("resize",()=>markScrollRegions());
 /* The navigator grid is rebuilt on every render. Keep its scroll position, and scroll it
    (not the page) just enough to show the current question. */
 function keepNavigatorInView(top){
