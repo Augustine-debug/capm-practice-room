@@ -59,8 +59,8 @@ const SITE={
   pmi:"https://www.pmi.org/capm",
   // Google Form links (E4). reportForm is the form's pre-filled link with the question ID field set to QID;
   // feedbackForm is the plain link. Buttons appear only when these are filled in.
-  reportForm:"",
-  feedbackForm:""
+  reportForm:"https://docs.google.com/forms/d/e/1FAIpQLSehQI1ccBgejCfve9nVBmqd46BuW_fVeUvaOKacZtvE1lwfIg/viewform?usp=pp_url&entry.1779748649=Report+a+problem+with+a+question&entry.829120462=QID",
+  feedbackForm:"https://docs.google.com/forms/d/e/1FAIpQLSehQI1ccBgejCfve9nVBmqd46BuW_fVeUvaOKacZtvE1lwfIg/viewform"
 };
 const reportLink=b=>SITE.reportForm?`<a class="report" href="${esc(SITE.reportForm.replace("QID",encodeURIComponent(b.id)))}" target="_blank" rel="noopener">⚑ Report this question</a>`:"";
 const feedbackLink=(cls="btn sm")=>SITE.feedbackForm?`<a class="${cls}" href="${esc(SITE.feedbackForm)}" target="_blank" rel="noopener">Share feedback</a>`:"";
