@@ -1,0 +1,22 @@
+# Operating system files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor settings
+.vscode/
+.idea/
+*.swp
+
+# Node.js (only scripts/validate.js uses Node, and it needs no packages)
+node_modules/
+npm-debug.log*
+
+# Vercel CLI and local secrets
+.vercel/
+.env
+.env.*
+
+# Logs and temporary files
+*.log
+tmp/
