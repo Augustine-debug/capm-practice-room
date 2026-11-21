@@ -238,6 +238,7 @@ function homeHTML(){
         <td>${ok?`<div class="hact"><button class="btn sm primary" data-review="${h.t}">Review</button><button class="btn sm" data-redo="${h.t}">Retake</button>${wrongN?`<button class="btn sm" data-redowrong="${h.t}">Retry ${wrongN} wrong</button>`:""}</div>`
           :`<small class="muted">No details saved</small>`}</td></tr>`}).join("")}
     </tbody></table>`:`<div class="empty">No attempts yet. Your results will be saved here, in this browser only.</div>`}</div>
+    ${hist.length?`<p class="muted" style="font-size:13px;margin:8px 0 0">Your history is saved only in this browser, on this device, and is lost if you clear your browser data.</p>`:""}
     <p class="note">Based on the PMI Certification Handbook (June 2026) and the CAPM ECO 2023: the exam has 150 questions, 135 scored and 15 unscored pretest questions mixed in at random; 3 hours, with a 10-minute break after question 75. The passing score is criteria-based and not published; this app uses 70% as a reference mark. The real exam also has drag-and-drop/matching and hot spot questions; this app uses multiple choice and multiple response ("Select two/three"). The bank has ${BANK.length} questions (${BANK.filter(b=>b.mode==="exam").length} exam, ${BANK.filter(b=>b.mode==="definition").length} definition review), mostly original, with ${BANK.filter(b=>b.org!=="own").length} adapted from Creative Commons sources and credited on each question. Every question is tagged with its ECO task; terms follow PMBOK 7, with PMBOK 8 notes where things changed. Your progress and history are saved in this browser only.</p>
   </section>`;
 }
@@ -375,9 +376,12 @@ function resultHTML(){
     <div class="panel"><h3>By domain</h3>${byD}<h3 style="margin-top:6px">By difficulty</h3>${byL}
       <div class="muted" style="font-size:12px">The vertical line on each bar marks 70%, a reference point only: PMI does not publish its passing score. Your real PMI score report also shows results by domain.</div></div>
   </section>
+  ${weak.length?`<section class="panel weakpanel"><h3>Study these tasks first</h3>
+    <p class="muted" style="margin:0 0 10px;font-size:14px">Your ${weak.length===1?"weakest ECO task":`${weak.length} weakest ECO tasks`} in this attempt. Practise each with instant feedback.</p>
+    <ul class="weaklist">${weak.map(x=>`<li><div><b class="mono">${x.t}</b> ${esc(TASKS[x.t][1])} <span class="muted">· ${x.c}/${x.n} correct (${Math.round(x.c/x.n*100)}%)</span></div><button class="btn sm primary" data-practask="${x.t}">Practise ${x.t}</button></li>`).join("")}</ul>
+  </section>`:""}
   <section class="panel tpanel">
     <details${tStats.length<=6?" open":""}><summary><h3>By ECO task <span class="muted" style="font-weight:400">(${tStats.length} tasks)</span></h3></summary>
-      ${weak.length?`<p class="weak">Study first (weakest tasks): ${weak.map(x=>`<b class="mono">${x.t}</b> ${esc(TASKS[x.t][1])} (${x.c}/${x.n})`).join(" · ")}</p>`:""}
       <div class="tgrid">${byT}</div></details>
   </section>
   <div class="actions">
@@ -401,10 +405,12 @@ function pick(orig){const b=q();if(isLocked(b))return;
   save();render()}
 /* ---------- events ---------- */
 document.addEventListener("click",e=>{
-  const t=e.target.closest("[data-act],[data-pick],[data-jump],[data-filter],[data-review],[data-redo],[data-redowrong]");if(!t)return;
+  const t=e.target.closest("[data-act],[data-practask],[data-pick],[data-jump],[data-filter],[data-review],[data-redo],[data-redowrong]");if(!t)return;
   if(t.dataset.review){const h=fromHistory(+t.dataset.review);if(h){S=h;reviewFilter="all";go("result")}return}
   if(t.dataset.redo){const h=fromHistory(+t.dataset.redo);if(h)redo(h);return}
   if(t.dataset.redowrong){const h=fromHistory(+t.dataset.redowrong);if(h){const w=h.ids.filter(id=>!okAns(h.ans[id],BANK[id-1]));if(w.length)newSession("retry",shuffle(w),{instant:true})}return}
+  if(t.dataset.practask){const ids=shuffleKeepGroups(BANK.filter(b=>b.mode==="exam"&&b.t===t.dataset.practask).map(b=>b.id)).slice(0,20);
+    if(ids.length)newSession("custom",ids,{instant:true});return}
   if(t.dataset.pick!==undefined){pick(+t.dataset.pick);return}
   if(t.dataset.jump!==undefined){const i=+t.dataset.jump;if(!canGo(i))return;S.idx=i;save();render();return}
   if(t.dataset.filter){reviewFilter=t.dataset.filter;render();return}
