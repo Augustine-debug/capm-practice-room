@@ -90,6 +90,15 @@ table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;min-
 table.hist{min-width:720px}
 td{vertical-align:middle}
 .hact{display:flex;gap:6px;flex-wrap:wrap}
+.delhist{width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;border:1px solid transparent;border-radius:8px;background:transparent;color:var(--muted);cursor:pointer}
+.delhist:hover{color:var(--bad);border-color:var(--bad);background:var(--bad-soft)}
+.delhist:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.histfoot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;margin-top:8px}
+.histfoot p{margin:0;font-size:13px}
+.btn.danger{background:var(--bad);border-color:var(--bad);color:var(--surface)}
+.btn.danger:hover{filter:brightness(1.08)}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+#histHead:focus{outline:none}
 .btn.sm{min-height:32px;padding:4px 10px;font-size:14px}
 th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);font-size:15px}
 th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700}

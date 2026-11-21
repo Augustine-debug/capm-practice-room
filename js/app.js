@@ -72,6 +72,7 @@ let reviewFilter="all";
 let railCollapsed=true;
 let confirmOpen=false;
 let confirmKind="submit";
+let delT=null; // the history entry (its time stamp) waiting for a delete confirmation
 let detailOpen=store.get("detailOpen",false);
 
 /* ---------- explanation language (E2): English by default, Vietnamese on request; remembered ---------- */
@@ -288,17 +289,28 @@ function homeHTML(){
     <p style="margin:0">Your answers in the attempt in progress will be deleted and it will not be saved to your history.</p>
     <div class="row"><button class="btn" data-act="close">Keep it</button><button class="btn primary" data-act="discardYes">Discard</button></div>
   </div></div>`:""}
+  ${confirmOpen&&confirmKind==="delhist"?(()=>{const h=hist.find(x=>x.t===delT);return h?`<div class="overlay" data-act="close"><div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlgT">
+    <h3 id="dlgT">Delete this attempt?</h3>
+    <p style="margin:0">${modeName[h.mode]} on ${when(h.t)}, ${h.c}/${h.n} correct (${Math.round(h.c/h.n*100)}%), will be removed from your history. This cannot be undone. Your Review mistakes list is not changed.</p>
+    <div class="row"><button class="btn" data-act="close">Keep it</button><button class="btn danger" data-act="delHistYes">Delete</button></div>
+  </div></div>`:""})():""}
+  ${confirmOpen&&confirmKind==="clearhist"?`<div class="overlay" data-act="close"><div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlgT">
+    <h3 id="dlgT">Clear your history?</h3>
+    <p style="margin:0">All ${hist.length} attempt${hist.length===1?"":"s"} will be removed from this browser. This cannot be undone. Your Review mistakes list and flashcard progress are not changed.</p>
+    <div class="row"><button class="btn" data-act="close">Keep it</button><button class="btn danger" data-act="clearHistYes">Clear history</button></div>
+  </div></div>`:""}
   ${SITE.feedbackForm?`<p class="fbline">Found a wrong answer or have an idea? <a href="${esc(SITE.feedbackForm)}" target="_blank" rel="noopener">Share feedback</a> and rate the app from 1 to 5. No email needed.</p>`:""}
   <section class="ledger">
-    <h2>History</h2>
+    <h2 id="histHead" tabindex="-1">History</h2>
     <p class="muted" style="margin:0 0 10px;font-size:14px">Open a past attempt to review every question with explanations, retake the whole set, or retry only the questions you missed.</p>
-    <div class="tablewrap">${hist.length?`<table class="hist"><thead><tr><th>Date</th><th>Mode</th><th>Correct</th><th>Score</th><th>Time</th><th>Review</th></tr></thead><tbody>
+    <div class="tablewrap">${hist.length?`<table class="hist"><thead><tr><th>Date</th><th>Mode</th><th>Correct</th><th>Score</th><th>Time</th><th>Review</th><th><span class="sr-only">Delete</span></th></tr></thead><tbody>
       ${hist.map(h=>{const p=Math.round(h.c/h.n*100);const ok=!!h.ids;const wrongN=ok?h.ids.filter(id=>!okAns(h.ans[id],BANK[id-1])).length:0;
         return `<tr><td>${when(h.t)}</td><td>${modeName[h.mode]}${ok?`<br><small class="muted">${scopeOf(h)}</small>`:""}</td><td class="mono">${h.c}/${h.n}</td><td><span class="pill ${pctClass(p)}">${p}%</span></td><td class="mono">${fmt(h.s)}</td>
         <td>${ok?`<div class="hact"><button class="btn sm primary" data-review="${h.t}">Review</button><button class="btn sm" data-redo="${h.t}">Retake</button>${wrongN?`<button class="btn sm" data-redowrong="${h.t}">Retry ${wrongN} wrong</button>`:""}</div>`
-          :`<small class="muted">No details saved</small>`}</td></tr>`}).join("")}
+          :`<small class="muted">No details saved</small>`}</td>
+        <td><button type="button" class="delhist" data-delhist="${h.t}" aria-label="Delete the attempt from ${when(h.t)}" title="Delete this attempt">${TRASH}</button></td></tr>`}).join("")}
     </tbody></table>`:`<div class="empty">No attempts yet. Your results will be saved here, in this browser only.</div>`}</div>
-    ${hist.length?`<p class="muted" style="font-size:13px;margin:8px 0 0">Your history is saved only in this browser, on this device, and is lost if you clear your browser data.</p>`:""}
+    ${hist.length?`<div class="histfoot"><p class="muted">Your history is saved only in this browser, on this device, and is lost if you clear your browser data.</p><button type="button" class="btn sm" data-act="clearHist">Clear history</button></div>`:""}
     <p class="note">Based on the PMI Certification Handbook (June 2026) and the CAPM ECO 2023: the exam has 150 questions, 135 scored and 15 unscored pretest questions mixed in at random; 3 hours, with a 10-minute break after question 75. The passing score is criteria-based and not published; this app uses 70% as a reference mark. The real exam also has drag-and-drop/matching and hot spot questions; this app uses multiple choice and multiple response ("Select two/three"). The bank has ${BANK.length} questions (${BANK.filter(b=>b.mode==="exam").length} exam, ${BANK.filter(b=>b.mode==="definition").length} definition review), mostly original, with ${BANK.filter(b=>b.org!=="own").length} adapted from Creative Commons sources and credited on each question. Every question is tagged with its ECO task; terms follow PMBOK 7, with PMBOK 8 notes where things changed. Your progress and history are saved in this browser only.</p>
   </section>`;
 }
@@ -468,7 +480,8 @@ function pick(orig){const b=q();if(isLocked(b))return;
   save();render()}
 /* ---------- events ---------- */
 document.addEventListener("click",e=>{
-  const t=e.target.closest("[data-act],[data-fc],[data-lang],[data-practask],[data-pick],[data-jump],[data-filter],[data-review],[data-redo],[data-redowrong]");if(!t)return;
+  const t=e.target.closest("[data-act],[data-fc],[data-lang],[data-practask],[data-pick],[data-jump],[data-filter],[data-review],[data-delhist],[data-redo],[data-redowrong]");if(!t)return;
+  if(t.dataset.delhist){delT=+t.dataset.delhist;confirmKind="delhist";confirmOpen=true;render();$(".dialog .btn:not(.danger)")?.focus();return}
   if(t.dataset.review){const h=fromHistory(+t.dataset.review);if(h){S=h;reviewFilter="all";go("result")}return}
   if(t.dataset.redo){const h=fromHistory(+t.dataset.redo);if(h)redo(h);return}
   if(t.dataset.redowrong){const h=fromHistory(+t.dataset.redowrong);if(h){const w=h.ids.filter(id=>!okAns(h.ans[id],BANK[id-1]));if(w.length)newSession("retry",shuffle(w),{instant:true})}return}
@@ -491,6 +504,9 @@ document.addEventListener("click",e=>{
     case "resume":S=store.get("session",null);if(S)go("exam");break;
     case "discard":confirmKind="discard";confirmOpen=true;render();$(".dialog .primary")?.focus();break;
     case "discardYes":store.del("session");S=null;confirmOpen=false;render();break;
+    case "clearHist":confirmKind="clearhist";confirmOpen=true;render();$(".dialog .btn:not(.danger)")?.focus();break;
+    case "delHistYes":store.set("history",store.get("history",[]).filter(h=>h.t!==delT));delT=null;confirmOpen=false;render();$("#histHead")?.focus();break;
+    case "clearHistYes":store.del("history");confirmOpen=false;render();$("#histHead")?.focus();break;
     case "prev":goPrev();break;
     case "next":goNext();break;
     case "endsec":endSection();break;
@@ -535,6 +551,7 @@ document.addEventListener("visibilitychange",()=>{if(document.hidden)save()});
 /* ---------- site navigation, footer and info pages ---------- */
 /* ---------- theme (E7, #25): System follows the device; Light/Dark override it ----------
    index.html applies the saved choice before the page draws, so there is no flash. */
+const TRASH='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>';
 const THEMES={system:["System",'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg>'],light:["Light",'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>'],dark:["Dark",'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>']};
 let theme=store.get("theme","system");if(!THEMES[theme])theme="system";
 function applyTheme(){const r=document.documentElement;if(theme==="system")delete r.dataset.theme;else r.dataset.theme=theme}
