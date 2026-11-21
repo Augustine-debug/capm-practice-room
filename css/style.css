@@ -2,7 +2,7 @@
 :root{
   --bg:#eef1ee; --surface:#ffffff; --sunk:#f6f8f6; --ink:#15212a; --muted:#59666f; --line:#d5dbd6;
   --accent:#0b5b63; --accent-ink:#ffffff; --accent-soft:#dcecec;
-  --flag:#a86a12; --flag-soft:#f8ead2; --ok:#257044; --ok-soft:#dff0e4; --bad:#b0261a; --bad-soft:#f9e1de;
+  --flag:#94590a; --flag-soft:#f8ead2; --ok:#257044; --ok-soft:#dff0e4; --bad:#b0261a; --bad-soft:#f9e1de;
   --f-display:"Archivo", "Helvetica Neue", Arial, sans-serif;
   --f-body:"Source Sans 3", "Segoe UI", system-ui, sans-serif;
   --f-mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
