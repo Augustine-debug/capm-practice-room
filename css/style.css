@@ -70,6 +70,7 @@ legend{padding:0;margin-bottom:8px}
 .ledger{margin-top:28px}
 .ledger h2{font-size:18px;margin-bottom:10px}
 .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+.tablewrap:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;min-width:520px}
 table.hist{min-width:720px}
 td{vertical-align:middle}
