@@ -263,6 +263,12 @@ function homeHTML(){
     <article class="mode wide" id="custom">
       <div class="label">Mode 4</div>
       <h2>Custom practice</h2>
+      <div class="row startrow">
+        <div style="flex:1;min-width:220px"><div class="label" style="margin-bottom:6px">Number of questions <span id="poolInfo" class="muted" style="text-transform:none;letter-spacing:0;font-weight:400"></span></div>
+          <p id="noMatch" class="nomatch" role="status" hidden>No questions match these filters. Tick at least one option in each group, or widen the ECO task filter.</p>
+          <div class="range"><input type="range" id="oCount" aria-label="Number of questions" min="1" max="${BANK.length}" value="20"><output id="oCountOut">20</output></div></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" id="startCustom" data-act="custom"><span>Start <span id="startN">20</span> questions</span></button></div>
+      </div>
       <div class="form">
         <fieldset><legend class="label">Question type</legend>${mChecks}<legend class="label" style="margin-top:10px">Domain</legend>${dChecks}</fieldset>
         <fieldset><legend class="label">Difficulty</legend>${lChecks}
@@ -276,12 +282,6 @@ function homeHTML(){
       <details class="taskpick"><summary>Filter by ECO task <span id="taskInfo" class="muted"></span></summary>
         <div class="trow"><button type="button" class="btn sm" data-act="tasksAll">Select all</button><button type="button" class="btn sm" data-act="tasksNone">Clear all</button></div>
         <div class="taskgrid">${tChecks}</div></details>
-      <div class="row startrow">
-        <div style="flex:1;min-width:220px"><div class="label" style="margin-bottom:6px">Number of questions <span id="poolInfo" class="muted" style="text-transform:none;letter-spacing:0;font-weight:400"></span></div>
-          <p id="noMatch" class="nomatch" role="status" hidden>No questions match these filters. Tick at least one option in each group, or widen the ECO task filter.</p>
-          <div class="range"><input type="range" id="oCount" aria-label="Number of questions" min="1" max="${BANK.length}" value="20"><output id="oCountOut">20</output></div></div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" id="startCustom" data-act="custom"><span>Start <span id="startN">20</span> questions</span></button></div>
-      </div>
     </article>
   </section>
   ${confirmOpen&&confirmKind==="start"?`<div class="overlay" data-act="close"><div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlgT">

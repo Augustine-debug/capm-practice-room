@@ -358,5 +358,6 @@ a.report:hover{color:var(--accent)}
 .btn.outline:hover{background:var(--accent-soft)}
 .fcbar .tab.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
 .fcbar .tab.on::before{content:"✓ "}
-.startrow{position:sticky;bottom:0;z-index:2;background:var(--surface);margin:12px -20px -20px;padding:12px 20px 14px;border-top:1px solid var(--line);border-radius:0 0 var(--r) var(--r)}
+.startrow{padding:14px 16px;margin:0;border:1px solid var(--line);border-radius:var(--r);background:var(--sunk)}
+.startrow+.form{margin-top:4px}
 @media (max-width:640px){.homespec{display:none}}
