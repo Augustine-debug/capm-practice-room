@@ -490,7 +490,7 @@ document.addEventListener("click",e=>{
     case "submit":submit();break;
     case "pause":save();S=null;go("home");break;
     case "home":S=null;go("home");break;
-    case "theme":nextTheme();break;
+    case "theme":setTheme(t.dataset.themeV,t.closest(".bar")?"bar":t.closest(".topnav")?"topnav":t.closest(".mast")?"mast":"");break;
     case "redoThis":redo(S);break;
     case "history":S=null;go("home");document.querySelector(".ledger")?.scrollIntoView();break;
   }
@@ -524,9 +524,10 @@ const THEMES={system:["System",'<svg viewBox="0 0 24 24" width="16" height="16" 
 let theme=store.get("theme","system");if(!THEMES[theme])theme="system";
 function applyTheme(){const r=document.documentElement;if(theme==="system")delete r.dataset.theme;else r.dataset.theme=theme}
 applyTheme();
-function nextTheme(){theme=theme==="system"?"light":theme==="light"?"dark":"system";
-  theme==="system"?store.del("theme"):store.set("theme",theme);applyTheme();render();$("[data-act=theme]")?.focus()}
-const themeBtn=(cls="")=>`<button type="button" class="themesw ${cls}" data-act="theme" aria-label="Theme: ${THEMES[theme][0]}. Change theme" title="Theme: ${THEMES[theme][0]} (click to change)"><span aria-hidden="true">${THEMES[theme][1]}</span><span class="tlabel">${THEMES[theme][0]}</span></button>`;
+function setTheme(v,where){if(!THEMES[v]||v===theme)return;theme=v;
+  theme==="system"?store.del("theme"):store.set("theme",theme);applyTheme();render();
+  $(`${where?"."+where+" ":""}.themesw [data-theme-v="${v}"]`)?.focus()}
+const themeBtn=(cls="")=>`<div class="themesw ${cls}" role="group" aria-label="Theme">${Object.keys(THEMES).map(k=>`<button type="button" data-act="theme" data-theme-v="${k}" aria-pressed="${theme===k}" aria-label="${THEMES[k][0]} theme" title="${THEMES[k][0]} theme${k==="system"?" (follows your device)":""}">${THEMES[k][1]}</button>`).join("")}</div>`;
 function navHTML(cur){
   const a=(href,k,t)=>`<a href="${href}"${cur===k?' aria-current="page"':""}>${t}</a>`;
   return `<nav class="topnav" aria-label="Main"><a class="brand" href="#/">CAPM <span>Practice Room</span></a>
