@@ -491,7 +491,7 @@ function resultHTML(){
   </div>
   ${list.length?`<div class="revtools"><button type="button" class="linkbtn" data-act="exAll">Show all explanations</button><button type="button" class="linkbtn" data-act="exNone">Hide all explanations</button></div>`:""}
   <section class="rev" aria-labelledby="revHead">${items||`<div class="empty">No ${({wrong:"incorrect",skip:"unanswered",flag:"flagged"})[reviewFilter]||""} questions in this attempt.</div>`}</section>
-  ${list.length>revShown?`<div class="more"><button type="button" class="btn" data-act="revMore">Show ${Math.min(20,list.length-revShown)} more <span class="muted">(${list.length-revShown} left)</span></button></div>`:""}
+  ${list.length>revShown?`<div class="revmore"><button type="button" class="btn" data-act="revMore">Show ${Math.min(20,list.length-revShown)} more <span class="muted">(${list.length-revShown} left)</span></button></div>`:""}
   ${list.length>3?`<div class="actions endactions"><a class="btn" href="#resTitle" data-act="toTop">↑ Back to top</a>${actionBtns(false)}</div>`:""}`;
 }
 
