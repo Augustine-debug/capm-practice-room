@@ -262,11 +262,14 @@ h3.qnum{margin:0;text-transform:uppercase;letter-spacing:.02em}
   .bar .themesw{display:none}
   /* question buttons stay within thumb reach at the bottom of the screen */
   .qcard{padding:16px}
-  .qnav{position:fixed;left:0;right:0;bottom:0;z-index:6;margin:0;padding:10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+  .exam .qnav,.fcnav{position:fixed;left:0;right:0;bottom:0;z-index:6;margin:0;padding:10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
     background:var(--surface);border-top:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr 1.3fr;gap:8px}
+  .fcnav.front{grid-template-columns:1fr 1.6fr 1fr}
+  .fcnav.back{grid-template-columns:repeat(4,1fr)}
   .exam{padding-bottom:84px}
-  .qnav .grp{display:contents}
-  .qnav .btn{justify-content:center;min-height:46px;padding:8px 6px}
+  .fccard{margin-bottom:84px}
+  .exam .qnav .grp,.fcnav .grp{display:contents}
+  .exam .qnav .btn,.fcnav .btn{justify-content:center;min-height:46px;padding:8px 6px;white-space:nowrap}
   .qnav .lg{display:none} .qnav .sm{display:inline}
   .qcard>.hint:last-child{display:none}
 }
@@ -382,3 +385,10 @@ a.report:hover{color:var(--accent)}
 }
 .h-lbl{display:none}
 @media (max-width:640px){.ledger .h-lbl{display:inline;font-family:var(--f-body)}}
+.fcopts li:has(.fcopt){padding:0;border:0}
+.fcopt{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font:inherit;cursor:pointer;min-height:44px}
+.fcopt:hover{border-color:var(--accent);background:var(--accent-soft)}
+.fcopt:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.fcopt .k{font-family:var(--f-mono);font-weight:700;color:var(--muted)}
+.fcopts li.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.fcopts li.wrong .k{color:var(--bad)}

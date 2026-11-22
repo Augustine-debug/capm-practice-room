@@ -512,7 +512,8 @@ document.addEventListener("click",e=>{
   if(t.dataset.redowrong){const h=fromHistory(+t.dataset.redowrong);if(h){const w=h.ids.filter(id=>!okAns(h.ans[id],BANK[id-1]));if(w.length)newSession("retry",shuffle(w),{instant:true})}return}
   if(t.dataset.practask){const ids=shuffleKeepGroups(BANK.filter(b=>b.mode==="exam"&&b.t===t.dataset.practask).map(b=>b.id)).slice(0,20);
     if(ids.length)newSession("custom",ids,{instant:true});return}
-  if(t.dataset.fc){fcAct(t.dataset.fc);return}
+  if(t.dataset.fc){fcAct(t.dataset.fc,t.dataset.i!==undefined?+t.dataset.i:undefined);
+    if(t.dataset.fc==="pick")$(".fcback .exhead b")?.setAttribute("tabindex","-1"),$(".fcback .exhead b")?.focus();return}
   if(t.dataset.lang){lang=t.dataset.lang;store.set("lang",lang);const y=window.scrollY;render();window.scrollTo(0,y);return}
   if(t.dataset.pick!==undefined){pick(+t.dataset.pick);return}
   if(t.dataset.jump!==undefined){const i=+t.dataset.jump;if(!canGo(i))return;S.idx=i;save();render();return}
@@ -700,13 +701,15 @@ function guideHTML(){
 }
 
 /* ---------- flashcards (C1–C3): the definition questions as cards; progress kept in this browser ---------- */
-const FC={ids:[],idx:0,flipped:false,domains:[1,2,3,4],againOnly:false};
+const FC={ids:[],idx:0,flipped:false,pick:null,domains:[1,2,3,4],againOnly:false};
 let cardMarks=store.get("cards",{});   // id -> "know" | "again"
 const fcPool=()=>BANK.filter(b=>b.mode==="definition"&&FC.domains.includes(b.d)&&(!FC.againOnly||cardMarks[b.id]==="again")).map(b=>b.id);
-function fcBuild(){FC.ids=shuffle(fcPool());FC.idx=0;FC.flipped=false}
+function fcBuild(){FC.ids=shuffle(fcPool());FC.idx=0;FC.flipped=false;FC.pick=null}
 const fcCard=()=>BANK[FC.ids[FC.idx]-1];
-function fcAct(a){
-  if(a==="flip")FC.flipped=!FC.flipped;
+function fcAct(a,arg){
+  const was=FC.idx;
+  if(a==="pick"){if(!FC.flipped){FC.pick=arg;FC.flipped=true}}
+  else if(a==="flip"){FC.flipped=!FC.flipped;if(!FC.flipped)FC.pick=null}
   else if(a==="next"){if(FC.idx<FC.ids.length-1){FC.idx++;FC.flipped=false}}
   else if(a==="prev"){if(FC.idx>0){FC.idx--;FC.flipped=false}}
   else if(a==="know"||a==="again"){const b=fcCard();cardMarks[b.id]=a;store.set("cards",cardMarks);
@@ -721,6 +724,7 @@ function fcAct(a){
   else if(a==="related"){view="cardq";render();window.scrollTo(0,0);return}
   else if(a==="back"){view="cards";render();window.scrollTo(0,0);return}
   else if(a==="reset"){cardMarks={};store.set("cards",cardMarks);fcBuild()}
+  if(FC.idx!==was)FC.pick=null;
   render();
 }
 function cardsHTML(){
@@ -733,17 +737,21 @@ function cardsHTML(){
       <label class="chk inline"><input type="checkbox" data-fc="againOnly" ${FC.againOnly?"checked":""}><span>Only cards marked “Review again”</span></label></div>`;
   if(!FC.ids.length)return head+`<div class="empty">${FC.againOnly?"No cards marked “Review again” in these domains. Nice work!":"Pick at least one domain."}</div>`;
   const b=fcCard(),ans=(Array.isArray(b.a)?b.a:[b.a]),mark=cardMarks[b.id];
-  const opts=b.o.map((o,i)=>`<li class="${FC.flipped&&ans.includes(i)?"right":""}"><span class="k">${L[i]}</span><span>${esc(o)}</span></li>`).join("");
+  /* front: each option is a button, so a tap on C picks C and shows whether it was right; back: the right answer and the pick */
+  const opts=b.o.map((o,i)=>{const ok=ans.includes(i),mine=FC.pick===i;
+    if(!FC.flipped)return `<li><button type="button" class="fcopt" data-fc="pick" data-i="${i}"><span class="k">${L[i]}</span><span>${esc(o)}</span></button></li>`;
+    const tag=ok&&mine?"✓ Your pick, correct":ok?"✓ Correct answer":mine?"✗ Your pick":"";
+    return `<li class="${ok?"right":mine?"wrong":""}"><span class="k">${L[i]}</span><span>${esc(o)}${tag?` <small class="otag">${tag}</small>`:""}</span></li>`}).join("");
   const back=FC.flipped?`<div class="fcback"${lang==="vi"?' lang="vi"':""}><div class="exhead"><b>Answer: ${ans.map(i=>L[i]).join(", ")}</b>${langSwitch()}</div>${shortHTML(b)}
       ${b.rel?`<button class="btn sm" data-fc="related">Try a related question →</button>`:""}${reportLink(b)}</div>`:"";
   return head+`<section class="fccard ${FC.flipped?"flipped":""}" aria-live="polite">
     <div class="meta"><span class="qnum">CARD ${FC.idx+1} / ${FC.ids.length}</span><span class="chip">Domain ${b.d}</span><span class="chip eco">ECO ${b.t}</span>${mark?`<span class="chip ${mark==="know"?"known":""}">${mark==="know"?"Known":"Review again"}</span>`:""}</div>
-    <div class="fcface" data-fc="flip"><p class="qtext">${esc(b.q)}</p><ol class="fcopts">${opts}</ol>
-      ${FC.flipped?"":`<span class="hint">Tap the card or press Space to show the answer</span>`}</div>
+    <div class="fcface"><p class="qtext">${esc(b.q)}</p><ol class="fcopts">${opts}</ol>
+      ${FC.flipped?"":`<span class="hint">Pick an answer to check it, or press “Show answer”</span>`}</div>
     ${back}
-    <div class="qnav"><button class="btn" data-fc="prev" ${FC.idx?"":"disabled"}>← Previous</button>
-      <div class="grp">${FC.flipped?`<button class="btn" data-fc="again">Review again</button><button class="btn primary" data-fc="know">Know it</button>`:`<button class="btn primary" data-fc="flip">Show answer</button>`}
-      <button class="btn" data-fc="next" ${FC.idx<FC.ids.length-1?"":"disabled"}>Next →</button></div></div>
+    <div class="qnav fcnav ${FC.flipped?"back":"front"}"><button class="btn" data-fc="prev" ${FC.idx?"":"disabled"} aria-label="Previous card">← <span class="lg">Previous</span><span class="sm">Prev</span></button>
+      <div class="grp">${FC.flipped?`<button class="btn" data-fc="again"><span class="lg">Review again</span><span class="sm">Again</span></button><button class="btn primary" data-fc="know">Know it</button>`:`<button class="btn primary" data-fc="flip">Show answer</button>`}
+      <button class="btn" data-fc="next" ${FC.idx<FC.ids.length-1?"":"disabled"} aria-label="Next card"><span class="lg">Next</span><span class="sm">Next</span> →</button></div></div>
   </section>
   <p class="hint">Shortcuts: Space to flip, ← → to move, K for “Know it”, R for “Review again”. Swipe left or right on a phone. <button class="linkbtn" data-fc="shuffle">Shuffle again</button> · <button class="linkbtn" data-fc="reset">Clear my progress</button></p>`;
 }

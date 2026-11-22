@@ -1,6 +1,6 @@
 # PRD: CAPM Practice Room (MVP)
 
-> **Status: Approved** · Version 1.5 · Approved by Duy Nguyễn on 21 November 2026, updated 22 November 2026.
+> **Status: Approved** · Version 1.6 · Approved by Duy Nguyễn on 21 November 2026, updated 22 November 2026.
 > This file is the source of truth for the product requirements. Any change in scope raises the version and gets a line in the [change log](#change-log). Acceptance criteria are tracked in the linked GitHub issues and ticked there when a feature is built and tested.
 
 ## Overview
@@ -101,7 +101,7 @@ New · [#19](https://github.com/Augustine-debug/capm-practice-room/issues/19)
 
 *As a career switcher, I want to review key CAPM terms as flashcards, so that I master the vocabulary before scenario questions.*
 
-- The front shows the question and options; tap the card or press Space to flip.
+- The front shows the question and options. Tapping an option picks it and turns the card, showing whether the pick was right; "Show answer" or Space turns it without picking. (Changed in v1.6.)
 - The back shows the correct answer, the short explanation and the "In short" line.
 - Filter by domain; cards are shuffled.
 - Move between cards with Previous / Next, or by swiping on a phone.
@@ -270,6 +270,7 @@ These apply to every screen and are checked in testing ([#24](https://github.com
 
 | Version | Date | Change | Approved by |
 |---|---|---|---|
+| 1.6 | 22/11/2026 | C1: options on a card are tappable; the back shows your pick and the correct answer (beta feedback: "I tapped C and it chose B") | Duy |
 | 1.5 | 22/11/2026 | D3: delete one attempt or clear the whole history, with confirmation | Duy |
 | 1.4 | 22/11/2026 | PRD moved into the repo as the source of truth and translated into English; stories linked to their GitHub issues | Duy |
 | 1.3 | 22/11/2026 | Dark mode moved into the launch release (E7, #25); v1.1 = #26 and #28; v1.2 (not a priority) = #29; offline mode dropped (#27) | Duy |
