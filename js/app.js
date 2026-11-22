@@ -15,6 +15,7 @@ const need=b=>multi(b)?b.a.length:1;
 const okAns=(v,b)=>v!==undefined&&(multi(b)?Array.isArray(v)&&v.length===b.a.length&&v.every(i=>b.a.includes(i)):v===b.a);
 const isAns=(b,i)=>multi(b)?b.a.includes(i):i===b.a;
 const picked=(v,i)=>Array.isArray(v)?v.includes(i):v===i;
+const APP_VERSION="1.0", APP_RELEASED="November 2026";   // shown in the footer; bump with each GitHub release
 const BANK_V=1;   // question-bank version, stored with each attempt
 const MOCK_N={1:54,2:26,3:30,4:40}; // full mock: 150 questions drawn by ECO domain weight
 /* questions that share one set of facts (same "context") form a group: they are drawn together and kept side by side */
@@ -598,6 +599,7 @@ function footHTML(){
   return `<footer class="foot">
     <div><a class="btn sm" href="${SITE.kofi}" target="_blank" rel="noopener">☕ Support this project</a></div>
     <div class="links">${SITE.feedbackForm?`<a href="${esc(SITE.feedbackForm)}" target="_blank" rel="noopener">Share feedback</a>`:""}<a href="#/guide">Exam guide</a><a href="#/about">About</a><a href="${SITE.repo}" target="_blank" rel="noopener">GitHub</a></div>
+    <p class="muted ver">v${APP_VERSION} · ${APP_RELEASED} · <a href="${SITE.repo}/releases" target="_blank" rel="noopener">What's new</a></p>
     <p class="muted">CAPM®, PMP®, PMBOK® and PMI® are registered marks of the Project Management Institute, Inc. This free app is not affiliated with or endorsed by PMI and contains no real exam questions.</p>
   </footer>`;
 }
