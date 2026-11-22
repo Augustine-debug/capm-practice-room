@@ -354,7 +354,7 @@ function breakHTML(){
   const s1=S.ids.slice(0,SEC),a1=s1.filter(id=>S.ans[id]!==undefined).length;
   return `<section class="breakbox">
     <div class="label">Full mock exam · End of section 1</div>
-    <h2>Scheduled break</h2>
+    <h1 class="brkh">Scheduled break</h1>
     <div class="brkclock"><b id="brk">${fmt(BREAK-S.brk)}</b><small>remaining</small></div>
     <p>Section 1 is locked (questions 1–75, ${a1}/${SEC} answered). The exam clock is paused, with <b class="mono">${fmt(S.limit-S.elapsed)}</b> left for section 2. Section 2 starts automatically after 10 minutes, or you can start it now.</p>
     <div class="row">${themeBtn()}<button class="btn ghost" data-act="pause">Pause</button><button class="btn primary" data-act="sec2">Start section 2 →</button></div>

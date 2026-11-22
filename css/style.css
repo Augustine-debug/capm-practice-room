@@ -195,7 +195,7 @@ h3.qnum{margin:0;text-transform:uppercase;letter-spacing:.02em}
 .taskgrid .chk{font-size:14px}
 .btn.sm{min-height:34px;padding:5px 11px;font-size:14px}
 .breakbox{margin:40px auto 0;max-width:620px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:28px;display:flex;flex-direction:column;gap:14px}
-.breakbox h2{font-size:28px}
+.breakbox h1{font-size:28px}
 .breakbox p{margin:0}
 .breakbox .row{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
 .brkclock{display:flex;align-items:baseline;gap:10px}
@@ -254,8 +254,17 @@ h3.qnum{margin:0;text-transform:uppercase;letter-spacing:.02em}
   .qtext{font-size:17px}
   .bar .hideable{display:none}
   .bar .title{display:none}
-  .bar{gap:8px 14px;padding-block:8px}
-  .bar .btn{min-height:38px;padding:6px 12px}
+  .bar{gap:8px 12px;padding-block:8px;flex-wrap:nowrap}
+  .bar .progress{position:absolute;left:0;right:0;bottom:-1px;border-radius:0;height:3px}
+  .bar .spacer{min-width:0}
+  .bar .btn{min-height:38px;padding:6px 12px;flex:none}
+  .bar .stat{flex:none}
+}
+@media (max-width: 374px){
+  .bar{gap:8px}
+  .bar .stat b{font-size:15px}
+  .bar .stat small{font-size:10px;letter-spacing:.03em}
+  .bar .btn{padding:6px 9px;font-size:14px}
 }
 .qnav .sm{display:none}
 @media (max-width: 640px){
