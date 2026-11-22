@@ -298,6 +298,7 @@ h3.qnum{margin:0;text-transform:uppercase;letter-spacing:.02em}
 .foot a{color:var(--accent)}
 .foot a.btn{color:var(--ink);text-decoration:none}
 .foot p{margin:0;max-width:80ch}
+.foot .ver{font-size:13px}
 .page{max-width:760px}
 .page .lead{font-size:18px;margin:20px 0}
 .page h2{font-size:20px;margin:28px 0 10px}
